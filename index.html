@@ -1,0 +1,2588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f2f5f4">
+<title>健康日志</title>
+<style>
+:root{
+  --bg:#f2f5f4;--card:#fff;--tx:#132420;--mu:#6a7b75;--ln:#e5ebe8;
+  --pri:#0d9488;--pri-d:#0f766e;--pri-l:#e6f5f2;
+  --red:#dc2626;--red-l:#fdeaea;
+  --orange:#ea580c;--orange-l:#fff2e8;
+  --blue:#0284c7;--blue-l:#e0f2fe;
+  --purple:#7c3aed;--purple-l:#f3e8ff;
+  --pink:#db2777;--pink-l:#fce7f3;
+  --green:#16a34a;--green-l:#e8f5ec;
+  --sh:0 1px 2px rgba(19,36,32,.03),0 2px 8px rgba(19,36,32,.04);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#e8edeb}
+body{color:var(--tx);font:15px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum"}
+#app{max-width:560px;margin:0 auto;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;padding-bottom:80px;position:relative}
+main{padding:0 12px 24px;flex:1}
+.envbar{background:#fff8e6;border-bottom:1px solid #f0e0b8;color:#8a6a1a;font-size:12.5px;line-height:1.55;padding:9px 14px;text-align:center}
+
+.hd{padding:16px 6px 8px}
+.datebar{display:flex;align-items:center;gap:6px}
+.nbtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--ln);background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--mu);cursor:pointer;flex-shrink:0;font-family:inherit;transition:all .12s}
+.nbtn:active{background:#f1f5f3;transform:scale(.94)}
+.nbtn.dis{opacity:.25;pointer-events:none}
+.datebar .mid{text-align:center;flex:1;min-width:0;cursor:pointer}
+.datebar .mid b{display:block;font-size:16px;font-weight:700;letter-spacing:-.01em}
+.datebar .mid span{display:block;font-size:11px;color:var(--mu);margin-top:2px}
+.hd h1{font-size:15px;font-weight:500;color:var(--mu);margin:12px 6px 0}
+
+.card{background:var(--card);border-radius:16px;padding:15px;margin-bottom:10px;box-shadow:var(--sh);border:1px solid rgba(229,235,232,.6);overflow:hidden;position:relative}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc,#0d9488);opacity:.9}
+.card.c-water{--acc:#0284c7}
+.card.c-body{--acc:#0d9488}
+.card.c-sleep{--acc:#7c3aed}
+.card.c-ex{--acc:#ea580c}
+.card.c-diet{--acc:#16a34a}
+.card.c-sym{--acc:#dc2626}
+.card.c-void{--acc:#0284c7}
+.card.c-med{--acc:#db2777}
+.card.c-skin{--acc:#db2777}
+.card.c-note{--acc:#94a3b8}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;gap:8px;cursor:pointer}
+.ch .t{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
+.ch .t .ico{font-size:16px}
+.ch .s{font-size:11.5px;color:var(--mu);white-space:nowrap;font-weight:500}
+.card.collapsed .body{display:none}
+.card.collapsed{padding-bottom:11px}
+.card.collapsed .ch{margin-bottom:0}
+.ch .caret{font-size:10px;color:var(--mu);transition:transform .2s;margin-left:2px;opacity:.6}
+.card.collapsed .caret{transform:rotate(-90deg)}
+
+.med-alert{background:linear-gradient(135deg,#fff8e6,#fef4dc);border:1px solid #f0dca8;border-radius:12px;padding:10px 13px;margin-bottom:11px;font-size:12.5px;color:#8a5a1a;line-height:1.5;display:flex;gap:8px;align-items:flex-start}
+.med-alert .ai{font-size:15px;flex-shrink:0;line-height:1.3}
+.med-alert b{color:#7a4a10}
+.med-alert.danger{background:linear-gradient(135deg,#fdecec,#fce4e4);border-color:#f5c7c7;color:#9a2020}
+.med-alert.danger b{color:#8a1818}
+
+.med-time-block{margin-bottom:14px}
+.med-time-block:last-child{margin-bottom:0}
+.med-time-hd{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mu);font-weight:600;margin-bottom:8px;letter-spacing:.02em}
+.med-time-hd .tmico{font-size:14px}
+.med-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f9fbfa;border-radius:11px;border:1px solid #eef2f0;margin-bottom:7px;transition:all .15s}
+.med-item:last-child{margin-bottom:0}
+.med-item.done{background:linear-gradient(135deg,#e6f5f2,#dff0ed);border-color:#c3e4de}
+.med-item .mi-info{flex:1;min-width:0}
+.med-item .mi-nm{font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+.med-item.done .mi-nm{color:var(--pri-d)}
+.med-item .mi-note{font-size:11px;color:var(--mu);margin-top:2px}
+.med-item .mi-check{width:32px;height:32px;border-radius:50%;border:2px solid var(--ln);background:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;color:transparent;cursor:pointer;flex-shrink:0;transition:all .15s;font-family:inherit;font-weight:700}
+.med-item .mi-check:active{transform:scale(.9)}
+.med-item.done .mi-check{background:var(--pri);border-color:var(--pri);color:#fff}
+
+.score-card{background:linear-gradient(135deg,#ffffff,#f9fdfc);border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:var(--sh);border:1px solid rgba(229,235,232,.6);display:flex;align-items:center;gap:16px}
+.score-ring{position:relative;width:82px;height:82px;flex-shrink:0}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring .v{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-ring .v b{font-size:24px;font-weight:700;line-height:1;letter-spacing:-.03em}
+.score-ring .v span{font-size:9px;color:var(--mu);margin-top:1px;font-weight:500}
+.score-info{flex:1;min-width:0}
+.score-info .lbl{font-size:13px;font-weight:600;letter-spacing:-.01em}
+.score-info .desc{font-size:12px;color:var(--mu);margin-top:3px;line-height:1.5}
+.score-info .tips{font-size:11px;color:var(--mu);margin-top:8px;padding-top:8px;border-top:1px dashed var(--ln);line-height:1.55}
+.score-info .tips b{color:var(--tx);font-weight:600}
+
+.miss{background:linear-gradient(135deg,#fffbf0,#fef7e6);border:1px solid #f0e0b8;border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.miss-t{font-size:12.5px;font-weight:600;color:#8a6a1a;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.miss-d{display:flex;flex-wrap:wrap;gap:6px}
+.miss-chip{border:1px solid #e8d9a8;background:#fff;border-radius:10px;padding:6px 12px;font-size:12.5px;cursor:pointer;color:#8a6a1a;font-family:inherit;font-weight:500}
+.miss-chip:active{background:#fdf5e0;transform:scale(.96)}
+
+.goal-card{background:linear-gradient(135deg,#f0fbf8,#e6f5f2);border:1px solid #c9e8e2;border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.goal-card .gt{font-size:13px;font-weight:700;color:var(--pri-d);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.goal-card .gm{display:flex;justify-content:space-between;font-size:12px;color:#3d5a54;margin-bottom:3px;font-weight:500}
+.goal-card .gb{height:8px;background:rgba(255,255,255,.7);border-radius:99px;overflow:hidden;margin:8px 0}
+.goal-card .gb>i{display:block;height:100%;background:linear-gradient(90deg,#2dd4bf,#0d9488);border-radius:99px;transition:width .4s}
+.goal-card .gf{font-size:11.5px;color:#3d5a54;margin-top:6px;line-height:1.5}
+
+.wsum{display:flex;justify-content:space-between;align-items:baseline;margin:2px 0 4px}
+.wsum .n{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.wsum .n small{font-size:12px;color:var(--mu);font-weight:500;margin-left:2px}
+.wsum .pct{font-size:13px;font-weight:700}
+.bar{height:6px;background:#eef2f0;border-radius:99px;overflow:hidden;margin:8px 0 12px}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#0d9488);border-radius:99px;transition:width .4s}
+.wrow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--ln)}
+.wrow:last-child{border-bottom:none;padding-bottom:0}
+.wrow .wn{flex:1;font-size:13px;color:var(--tx)}
+.wrow .wv{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--mu);min-width:50px;text-align:right}
+.wrow .wv.act{color:var(--pri-d)}
+.wrow .wq{display:flex;gap:5px}
+.wbtn{border:1px solid var(--ln);background:#fff;border-radius:9px;padding:6px 10px;font:600 12px/1 inherit;color:var(--tx);cursor:pointer;font-family:inherit;transition:all .12s}
+.wbtn:active{background:var(--pri-l);border-color:#a8d5cc;transform:scale(.94)}
+.wbtn.neg{color:var(--mu);font-size:14px}
+.wtag{font-size:10px;color:var(--orange);margin-left:2px}
+
+.f{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--ln)}
+.f:last-child{border-bottom:none;padding-bottom:0}
+.f:first-child{padding-top:0}
+.f label{font-size:12.5px;color:var(--mu);width:80px;flex-shrink:0;font-weight:500}
+.f .unit{font-size:12px;color:var(--mu);flex-shrink:0;font-weight:500}
+.inp{flex:1;border:1px solid var(--ln);border-radius:10px;padding:9px 12px;font:14px inherit;color:var(--tx);background:#fafcfb;outline:none;min-width:0;font-variant-numeric:tabular-nums;transition:all .15s}
+.inp:focus{border-color:#5eead4;background:#fff;box-shadow:0 0 0 3px rgba(13,148,136,.08)}
+.inp::placeholder{color:#bcc8c3}
+.inp.short{max-width:90px}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--ln);background:#fff;border-radius:9px;padding:7px 12px;font-size:12.5px;cursor:pointer;color:var(--tx);font-family:inherit;font-weight:500;transition:all .12s;user-select:none}
+.chip:active{transform:scale(.95)}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri);font-weight:600}
+
+.meal{margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed var(--ln)}
+.meal:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.meal-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.meal-hd .nm{font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+.meal-hd .kc{font-size:11px;color:var(--mu);margin-left:auto;font-weight:500}
+.madd{width:28px;height:28px;border-radius:9px;border:1px solid var(--ln);background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--pri);cursor:pointer;flex-shrink:0;font-weight:500;font-family:inherit;transition:all .15s}
+.madd:active{background:var(--pri-l)}
+.madd.on{background:var(--pri);color:#fff;border-color:var(--pri);transform:rotate(45deg)}
+.mnut{width:28px;height:28px;border-radius:9px;border:1px solid var(--ln);background:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--blue);cursor:pointer;flex-shrink:0;font-family:inherit;transition:all .15s}
+.mnut:active{background:var(--blue-l)}
+.mnut.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.fchip{display:inline-flex;align-items:center;gap:5px;background:#f6f9f8;border:1px solid #e8efec;border-radius:9px;padding:6px 7px 6px 10px;font-size:12.5px;font-weight:500}
+.fchip .x{color:#a3b3ad;font-size:15px;line-height:1;cursor:pointer;padding:0 3px}
+.fchip .x:active{color:var(--red)}
+.fchip.hz{background:var(--red-l);border-color:#f5c7c7;color:#a21a1a}
+.fchip.hz .x{color:#e5a0a0}
+.fchip.wr{background:var(--orange-l);border-color:#fad3b5;color:#93481a}
+.fchip.wr .x{color:#e0b090}
+.empty{font-size:12.5px;color:#b8c3bf;padding:3px 0;font-style:italic}
+.picker{margin-top:12px;border-top:1px dashed var(--ln);padding-top:12px;animation:slideIn .2s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.cats{display:flex;gap:6px;overflow-x:auto;padding:0 15px 10px;margin:0 -15px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex-shrink:0;border:1px solid var(--ln);background:#fff;border-radius:99px;padding:6px 14px;font-size:12.5px;cursor:pointer;color:var(--mu);white-space:nowrap;font-family:inherit;font-weight:500;transition:all .12s}
+.cat:active{transform:scale(.95)}
+.cat.on{background:var(--pri);color:#fff;border-color:var(--pri);font-weight:600}
+.foods{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;max-height:260px;overflow-y:auto;margin-bottom:10px}
+.food{text-align:left;border:1px solid var(--ln);background:#fff;border-radius:10px;padding:9px 11px;font:400 12.5px/1.3 inherit;color:var(--tx);cursor:pointer;font-family:inherit;transition:all .12s}
+.food:active{background:var(--pri-l);border-color:#a8d5cc;transform:scale(.97)}
+.food b{display:block;font-weight:600}
+.food i{font-style:normal;font-size:10.5px;color:var(--mu);display:block;margin-top:3px}
+.food i.hz{color:var(--red)}
+.food i.wr{color:var(--orange)}
+.free{display:flex;gap:7px;margin-top:9px}
+.free .inp{flex:1}
+
+.nut-bar{margin-top:8px;padding:8px 11px;background:linear-gradient(135deg,#e0f2fe,#f0f9ff);border:1px solid #bae6fd;border-radius:10px;font-size:11.5px;color:#075985;display:flex;align-items:center;gap:8px;line-height:1.5}
+.nut-bar .nb-ico{flex-shrink:0;font-size:14px}
+.nut-bar .nb-txt{flex:1;min-width:0}
+.nut-bar .nb-x{color:#7dd3fc;font-size:15px;cursor:pointer;padding:0 3px;flex-shrink:0}
+.nut-bar .nb-x:active{color:var(--red)}
+.nut-bar b{color:#0c4a6e;font-weight:600}
+.nut-label{font-size:12px;color:#0c4a6e;font-weight:600;margin-bottom:3px}
+
+.sym{margin-bottom:14px}
+.sym:last-child{margin-bottom:0}
+.sym-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sym-hd .sn{font-size:13.5px;font-weight:600}
+.sym-hd .sv{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--mu);background:#f4f7f6;padding:3px 9px;border-radius:99px}
+.sym-hd .sv.on{color:var(--red);background:var(--red-l)}
+.dots{display:flex;gap:5px;margin-bottom:9px}
+.dot{flex:1;height:36px;border-radius:10px;border:1px solid var(--ln);background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--mu);cursor:pointer;transition:all .12s;font-family:inherit}
+.dot:active{transform:scale(.95)}
+.dot.on{background:var(--red);color:#fff;border-color:var(--red)}
+.dot.on.wr{background:var(--orange);border-color:var(--orange)}
+.sub-lbl{font-size:11.5px;color:var(--mu);margin:9px 0 6px;font-weight:500;letter-spacing:.02em}
+.sed-row{display:flex;gap:5px;margin-top:6px}
+.sed-b{flex:1;border:1px solid var(--ln);background:#fff;border-radius:10px;padding:9px 0;font:600 12px/1 inherit;color:var(--mu);cursor:pointer;font-family:inherit;text-align:center;transition:all .12s}
+.sed-b:active{transform:scale(.95)}
+.sed-b.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+
+.skin-row{padding:11px 0;border-bottom:1px dashed var(--ln)}
+.skin-row:last-child{border-bottom:none;padding-bottom:0}
+.skin-row:first-child{padding-top:0}
+.skin-name{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.skin-name .cur{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;margin-left:auto}
+.skin-name .cur.none{background:#f4f7f6;color:var(--mu)}
+.skin-name .cur.improve{background:var(--green-l);color:#15803d}
+.skin-name .cur.stable{background:var(--blue-l);color:#0369a1}
+.skin-name .cur.worse{background:var(--red-l);color:var(--red)}
+.skin-states{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.skin-st{border:1.5px solid var(--ln);background:#fff;border-radius:10px;padding:9px 0;font:600 12px/1 inherit;color:var(--mu);cursor:pointer;font-family:inherit;text-align:center;transition:all .12s}
+.skin-st:active{transform:scale(.95)}
+.skin-st.on{color:#fff}
+.skin-st.on[data-skin-val="none"]{background:#94a3b8;border-color:#94a3b8}
+.skin-st.on[data-skin-val="improve"]{background:#16a34a;border-color:#16a34a}
+.skin-st.on[data-skin-val="stable"]{background:#0284c7;border-color:#0284c7}
+.skin-st.on[data-skin-val="worse"]{background:#dc2626;border-color:#dc2626}
+
+.med-mgr{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px dashed var(--ln)}
+.med-mgr:last-child{border-bottom:none}
+.med-mgr.off{opacity:.5}
+.med-mgr .mm-info{flex:1;min-width:0}
+.med-mgr .mm-nm{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:6px}
+.med-mgr .mm-times{font-size:11.5px;color:var(--mu);margin-top:4px;display:flex;gap:5px;flex-wrap:wrap}
+.med-mgr .mm-tag{background:#eef2f0;padding:2px 8px;border-radius:99px;font-weight:600;color:#4a5b55}
+.med-mgr .mm-note{font-size:11px;color:var(--mu);margin-top:3px;font-style:italic}
+.med-mgr .mm-btn{border:1px solid var(--ln);background:#fff;border-radius:8px;padding:6px 10px;font:600 11.5px/1 inherit;color:var(--mu);cursor:pointer;flex-shrink:0;font-family:inherit}
+.med-mgr .mm-btn:active{background:#f1f5f3}
+.med-mgr .mm-btn.warn{color:var(--red);border-color:#f3c6c6}
+
+.ex{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px dashed var(--ln);font-size:13px}
+.ex:last-child{border-bottom:none}
+.ex .en{font-weight:600}
+.ex .em{font-size:11.5px;color:var(--mu);margin-top:3px}
+.ex .x{margin-left:auto;color:#c3cdc9;font-size:17px;cursor:pointer;padding:0 3px}
+.ex .x:active{color:var(--red)}
+.addrow{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.sel{border:1px solid var(--ln);border-radius:10px;padding:9px 11px;font:13px inherit;color:var(--tx);background:#fafcfb;outline:none;flex:1;min-width:0;font-family:inherit}
+
+.btn{flex:1;min-width:52px;border:1px solid var(--ln);background:#fff;border-radius:11px;padding:11px 0;font:600 13.5px/1 inherit;color:var(--tx);cursor:pointer;font-family:inherit;transition:all .12s}
+.btn:active{background:#f1f5f3;transform:scale(.97)}
+.btn.pri{background:var(--pri);color:#fff;border-color:var(--pri);box-shadow:0 2px 8px rgba(13,148,136,.25)}
+.btn.pri:active{background:var(--pri-d)}
+.btn.sm{flex:0 0 66px;color:var(--mu)}
+.btn.dg{color:var(--red);border-color:#f3c6c6}
+.btn.dg:active{background:var(--red-l)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+
+.tip{display:flex;gap:9px;font-size:12.5px;line-height:1.55;padding:9px 0;border-bottom:1px dashed var(--ln);color:#2c3a35}
+.tip:last-child{border-bottom:none;padding-bottom:0}
+.tip:first-child{padding-top:0}
+.tip .dt{flex-shrink:0;width:6px;height:6px;border-radius:99px;background:var(--orange);margin-top:7px}
+.tip.ok .dt{background:#14b8a6}
+.tip.warn .dt{background:var(--red)}
+.tip b{color:var(--tx);font-weight:600}
+
+.cal-hd{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 14px}
+.cal-hd b{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-wd{text-align:center;font-size:11px;color:var(--mu);padding:4px 0;font-weight:500}
+.cal-d{aspect-ratio:1;border-radius:11px;border:1.5px solid var(--ln);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;cursor:pointer;position:relative;transition:transform .12s}
+.cal-d:active{transform:scale(.94)}
+.cal-d .dn{font-weight:600}
+.cal-d .dd{font-size:9px;color:var(--mu);margin-top:1px}
+.cal-d.empty{opacity:0;pointer-events:none}
+.cal-d.today{border-color:var(--pri);border-width:2px}
+.cal-d.sel{background:var(--pri);color:#fff;border-color:var(--pri)}
+.cal-d.sel .dd{color:rgba(255,255,255,.85)}
+.cal-d.lv0{background:#fdeaea;border-color:#f5c7c7}
+.cal-d.lv1{background:#fff2e8;border-color:#fad3b5}
+.cal-d.lv2{background:#f0f9f7;border-color:#c3e4de}
+.cal-d.lv3{background:#dbf0eb;border-color:#93cec3}
+.legend{display:flex;gap:10px;font-size:11px;color:var(--mu);padding:12px 0 0;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3.5px;margin-right:5px;vertical-align:-2px;border:1px solid}
+
+.chk{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--ln)}
+.chk:last-child{border-bottom:none;padding-bottom:2px}
+.chk .info{flex:1;min-width:0}
+.chk .nm{font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+.chk .mt{font-size:11.5px;color:var(--mu);margin-top:3px}
+.pill{font-size:11px;font-weight:700;padding:5px 11px;border-radius:99px;white-space:nowrap;letter-spacing:.01em}
+.pill.ok{background:var(--pri-l);color:var(--pri-d)}
+.pill.soon{background:var(--orange-l);color:var(--orange)}
+.pill.over{background:var(--red-l);color:var(--red)}
+.mbtn{border:1px solid var(--ln);background:#fff;border-radius:9px;padding:6px 11px;font:600 11.5px/1 inherit;color:var(--mu);cursor:pointer;flex-shrink:0;font-family:inherit}
+.mbtn:active{background:#f1f5f3}
+
+.rec{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed var(--ln);font-size:13px}
+.rec:last-child{border-bottom:none}
+.rec .k{color:var(--mu);flex-shrink:0}
+.rec .v{text-align:right;font-weight:500}
+.rec .v.bad{color:var(--red);font-weight:600}
+
+nav{position:fixed;bottom:0;left:0;right:0;max-width:560px;margin:0 auto;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--ln);display:flex;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:50}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;color:#a5b3ae;user-select:none;transition:color .15s}
+.ni em{font-style:normal;font-size:10.5px;font-weight:600}
+.ni span{font-size:19px;line-height:1}
+.ni.active{color:var(--pri)}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(19,36,32,.95);color:#fff;padding:11px 20px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:all .28s cubic-bezier(.34,1.56,.64,1);z-index:99;white-space:nowrap;max-width:82vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.modal{position:fixed;inset:0;background:rgba(19,36,32,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease}
+.modal.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-card{background:#fff;border-radius:20px;width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:modalIn .25s cubic-bezier(.34,1.4,.64,1)}
+@keyframes modalIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-hd{padding:18px 20px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ln)}
+.modal-hd b{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.modal-close{width:32px;height:32px;border-radius:10px;border:none;background:#f4f7f6;color:var(--mu);font-size:18px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.modal-close:active{background:#e8edeb}
+.modal-body{flex:1;overflow-y:auto;padding:16px 20px}
+.modal-body textarea{width:100%;border:none;outline:none;font:12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--tx);background:#f9fbfa;border-radius:12px;padding:14px;resize:none;min-height:340px;white-space:pre;overflow-wrap:normal;overflow-x:auto;border:1px solid var(--ln)}
+.modal-ft{padding:12px 20px 18px;display:flex;gap:8px;border-top:1px solid var(--ln)}
+
+.medform .f{padding:10px 0}
+.medform .f label{width:60px}
+.medform .sub-lbl{font-size:12px;color:var(--mu);margin:14px 0 8px;font-weight:600}
+.medform .chips{margin-bottom:6px}
+
+.nut-paste{width:100%;min-height:160px;border:1px solid var(--ln);border-radius:12px;padding:12px;font:13px/1.55 inherit;color:var(--tx);background:#f9fbfa;outline:none;resize:vertical;font-family:inherit}
+.nut-paste:focus{border-color:#5eead4;background:#fff;box-shadow:0 0 0 3px rgba(13,148,136,.08)}
+.nut-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.nut-fld{display:flex;flex-direction:column;gap:4px}
+.nut-fld label{font-size:11.5px;color:var(--mu);font-weight:500}
+.nut-fld .inp{font-size:14px;padding:9px 10px}
+.nut-hint{font-size:11.5px;color:var(--mu);margin-top:8px;line-height:1.5}
+.nut-sec{font-size:12.5px;font-weight:600;margin:16px 0 8px;display:flex;align-items:center;gap:6px}
+.nut-sec .ico{font-size:14px}
+
+.sg{display:flex;gap:8px}
+.st2{flex:1;background:#f9fbfa;border-radius:12px;padding:12px 8px;text-align:center;border:1px solid #eef2f0}
+.st2 b{display:block;font-size:17px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.st2 span{font-size:10.5px;color:var(--mu);font-weight:500}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="envbar-slot"></div>
+  <main id="view"></main>
+  <nav>
+    <div class="ni active" data-tab="log"><span>✍️</span><em>记录</em></div>
+    <div class="ni" data-tab="cal"><span>📅</span><em>日历</em></div>
+    <div class="ni" data-tab="trend"><span>📈</span><em>趋势</em></div>
+    <div class="ni" data-tab="check"><span>🔔</span><em>复查</em></div>
+    <div class="ni" data-tab="me"><span>🗂️</span><em>我的</em></div>
+  </nav>
+  <div class="toast" id="toast"></div>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <div class="modal-hd">
+        <b id="modalTitle">报告</b>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"><textarea id="modalText" readonly></textarea></div>
+      <div class="modal-ft" id="modalFt">
+        <button class="btn" id="modalCopy">📋 复制全部</button>
+        <button class="btn pri" id="modalOk">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="medModal">
+    <div class="modal-card">
+      <div class="modal-hd">
+        <b id="medModalTitle">编辑药物</b>
+        <button class="modal-close" id="medModalClose">×</button>
+      </div>
+      <div class="modal-body" id="medModalBody"></div>
+      <div class="modal-ft" id="medModalFt"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="nutModal">
+    <div class="modal-card">
+      <div class="modal-hd">
+        <b id="nutModalTitle">营养分析</b>
+        <button class="modal-close" id="nutModalClose">×</button>
+      </div>
+      <div class="modal-body" id="nutModalBody"></div>
+      <div class="modal-ft" id="nutModalFt"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   0. 存储层
+   ============================================================ */
+const LS=(function(){
+  try{
+    const t='__hltest__';
+    window.localStorage.setItem(t,'1');
+    window.localStorage.removeItem(t);
+    return {ok:true,get:k=>window.localStorage.getItem(k),set:(k,v)=>window.localStorage.setItem(k,v),del:k=>window.localStorage.removeItem(k)};
+  }catch(e){
+    const m={};
+    return {ok:false,get:k=>m[k]??null,set:(k,v)=>{m[k]=String(v)},del:k=>{delete m[k]}};
+  }
+})();
+if(!LS.ok){
+  document.getElementById('envbar-slot').innerHTML='<div class="envbar">⚠️ 当前环境无法保存数据，刷新会重置。请把文件保存到本地用真实浏览器打开。</div>';
+}
+
+/* ============================================================
+   1. 数据层
+   ============================================================ */
+const KEY='healthlog_v7';
+
+function defState(){
+  return {
+    profile:{sex:'男',age:24,height:173,weightRef:{date:'2026-07-12',value:83.5},bmi:27.2,ua:567},
+    days:{},
+    uric:[
+      {date:'2022-05-29',value:829},
+      {date:'2026-07-12',value:567}
+    ],
+    checkups:[
+      {id:'ua',name:'尿酸 + 肝功 + 血脂 + 血糖',dept:'风湿免疫科 / 内分泌科',months:3,last:'2026-07-12'},
+      {id:'uro',name:'泌尿外科（前列腺炎）',dept:'泌尿外科',months:6,last:'2026-07-12'},
+      {id:'ortho',name:'骨科 / 康复科（腰椎）',dept:'骨科',months:6,last:'2026-07-12'},
+      {id:'ct',name:'胸部 CT（左上肺结节）',dept:'呼吸内科 / 胸外科',months:12,last:'2026-07-12'},
+      {id:'liver',name:'肝脏彩超（脂肪肝）',dept:'消化内科 / 肝科',months:12,last:'2026-07-12'},
+      {id:'eye',name:'眼底检查（高度近视）',dept:'眼科',months:12,last:'2025-10-19'}
+    ],
+    meds:[],
+    cfg:{waterGoal:2500,weightGoal:75,uaGoal:360,kcalGoal:1800,waistGoal:90,sleepGoal:7,dayCutoffHour:4},
+    goal:null,
+    collapsed:{}
+  };
+}
+
+function load(){
+  try{
+    const raw=LS.get(KEY);
+    if(!raw) return defState();
+    const p=JSON.parse(raw);
+    const d=defState();
+    return {
+      profile:Object.assign(d.profile,p.profile||{}),
+      days:p.days||{},
+      uric:p.uric||d.uric,
+      checkups:p.checkups||d.checkups,
+      meds:Array.isArray(p.meds)?p.meds:[],
+      cfg:Object.assign(d.cfg,p.cfg||{}),
+      goal:p.goal||null,
+      collapsed:p.collapsed||{}
+    };
+  }catch(e){ return defState(); }
+}
+let S=load();
+function save(){try{LS.set(KEY,JSON.stringify(S))}catch(e){toast('保存失败')}}
+function lsGet(k){try{return LS.get(k)}catch(e){return null}}
+function lsSet(k,v){try{LS.set(k,v)}catch(e){}}
+function lsDel(k){try{LS.del(k)}catch(e){}}
+
+/* ============================================================
+   2. 日期
+   ============================================================ */
+const pad=n=>String(n).padStart(2,'0');
+const fmt=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseD=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const WD=['周日','周一','周二','周三','周四','周五','周六'];
+const humanD=s=>{const d=parseD(s);return(d.getMonth()+1)+'/'+d.getDate()};
+const humanFull=s=>{const d=parseD(s);return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+WD[d.getDay()]};
+const diffDays=(a,b)=>Math.round((parseD(a)-parseD(b))/864e5);
+
+function todayK(){
+  const now=new Date();
+  const cut=(S&&S.cfg&&S.cfg.dayCutoffHour)||4;
+  if(now.getHours()<cut) now.setDate(now.getDate()-1);
+  return fmt(now);
+}
+function isEarlyMorning(){
+  const cut=(S&&S.cfg&&S.cfg.dayCutoffHour)||4;
+  return new Date().getHours()<cut;
+}
+
+function blankDay(){
+  return{
+    water:{plain:0,tea:0,coffee:0,diet:0,sugary:0,alcohol:0},
+    weight:null,waist:null,bp:null,sleep:null,note:'',
+    meals:{breakfast:[],lunch:[],tea:[],dinner:[]},
+    nutrition:{},
+    symptoms:{
+      back:{score:0,nature:null,triggers:[],reliefs:[],duration:null},
+      joint:{score:0,sites:[]},
+      urinary:{score:0,sites:[]}
+    },
+    skin:{fungal:null,folliculitis:null,seborrheic:null},
+    sedentary:null,
+    exercise:[],medLog:{},
+    voiding:{day:null,night:null,urgency:false,pain:false,incomplete:false},
+    bowel:{count:null,type:null}
+  };
+}
+
+function getDay(k){
+  if(!S.days[k]) S.days[k]=blankDay();
+  const d=S.days[k];
+  d.water=Object.assign({plain:0,tea:0,coffee:0,diet:0,sugary:0,alcohol:0},d.water||{});
+  ['breakfast','lunch','tea','dinner'].forEach(m=>{if(!Array.isArray(d.meals?.[m])) (d.meals=d.meals||{})[m]=[];});
+  if(!d.nutrition||typeof d.nutrition!=='object') d.nutrition={};
+  if(!d.symptoms) d.symptoms=blankDay().symptoms;
+  ['back','joint','urinary'].forEach(s=>{if(!d.symptoms[s]) d.symptoms[s]=blankDay().symptoms[s];});
+  if(!Array.isArray(d.symptoms.back.triggers)) d.symptoms.back.triggers=[];
+  if(!Array.isArray(d.symptoms.back.reliefs)) d.symptoms.back.reliefs=[];
+  if(!Array.isArray(d.symptoms.joint.sites)) d.symptoms.joint.sites=[];
+  if(!Array.isArray(d.symptoms.urinary.sites)) d.symptoms.urinary.sites=[];
+  if(!d.skin) d.skin=blankDay().skin;
+  if(!Array.isArray(d.exercise)) d.exercise=[];
+  if(!d.medLog||typeof d.medLog!=='object') d.medLog={};
+  if(!d.voiding) d.voiding={day:null,night:null,urgency:false,pain:false,incomplete:false};
+  if(!d.bowel) d.bowel={count:null,type:null};
+  return d;
+}
+
+/* ============================================================
+   3. 常量
+   ============================================================ */
+const FOODS=[
+  {n:'白水',c:'drink',lv:0,kcal:0,tag:''},{n:'无糖茶',c:'drink',lv:0,kcal:0,tag:''},
+  {n:'黑咖啡',c:'drink',lv:0,kcal:5,tag:''},{n:'无糖可乐',c:'drink',lv:0,kcal:0,tag:''},
+  {n:'牛奶',c:'drink',lv:0,kcal:130,tag:'低脂奶更佳'},{n:'无糖豆浆',c:'drink',lv:0,kcal:80,tag:''},
+  {n:'奶茶（微糖）',c:'drink',lv:1,kcal:280,tag:'含糖'},
+  {n:'含糖饮料',c:'drink',lv:2,kcal:180,tag:'果糖升尿酸'},
+  {n:'果汁',c:'drink',lv:2,kcal:150,tag:'果糖'},
+  {n:'啤酒',c:'drink',lv:2,kcal:150,tag:'酒精+嘌呤'},
+  {n:'白酒/烈酒',c:'drink',lv:2,kcal:200,tag:'酒精'},
+  {n:'红酒',c:'drink',lv:1,kcal:120,tag:'酒精'},
+  {n:'米饭 1 碗',c:'staple',lv:0,kcal:230,tag:''},
+  {n:'米饭 2 碗',c:'staple',lv:1,kcal:460,tag:'主食偏多'},
+  {n:'杂粮饭 1 碗',c:'staple',lv:0,kcal:200,tag:'推荐'},
+  {n:'面条',c:'staple',lv:0,kcal:280,tag:''},
+  {n:'馒头/包子',c:'staple',lv:0,kcal:220,tag:''},
+  {n:'全麦面包',c:'staple',lv:0,kcal:160,tag:'推荐'},
+  {n:'玉米',c:'staple',lv:0,kcal:110,tag:''},
+  {n:'燕麦',c:'staple',lv:0,kcal:150,tag:'推荐'},
+  {n:'鸡蛋',c:'protein',lv:0,kcal:75,tag:''},
+  {n:'鸡胸肉',c:'protein',lv:0,kcal:165,tag:'推荐'},
+  {n:'鱼肉',c:'protein',lv:1,kcal:150,tag:'适量'},
+  {n:'虾/蟹',c:'protein',lv:2,kcal:120,tag:'高嘌呤'},
+  {n:'瘦牛肉',c:'protein',lv:1,kcal:180,tag:'适量'},
+  {n:'瘦猪肉',c:'protein',lv:1,kcal:200,tag:'适量'},
+  {n:'豆腐',c:'protein',lv:0,kcal:90,tag:'植物蛋白'},
+  {n:'酸奶',c:'protein',lv:0,kcal:120,tag:''},
+  {n:'烤肉肠/香肠',c:'protein',lv:2,kcal:280,tag:'加工肉'},
+  {n:'火腿肠',c:'protein',lv:2,kcal:220,tag:'加工肉'},
+  {n:'腊肠',c:'protein',lv:2,kcal:320,tag:'加工肉'},
+  {n:'培根/腊肉',c:'protein',lv:2,kcal:300,tag:'加工肉'},
+  {n:'深色蔬菜',c:'veg',lv:0,kcal:35,tag:'推荐'},
+  {n:'瓜果类',c:'veg',lv:0,kcal:22,tag:''},
+  {n:'菌菇类',c:'veg',lv:1,kcal:30,tag:'适量'},
+  {n:'绿叶蔬菜',c:'veg',lv:0,kcal:30,tag:'推荐'},
+  {n:'低糖水果（莓/猕猴桃/柚）',c:'fruit',lv:0,kcal:50,tag:'果糖低'},
+  {n:'中糖水果（苹果/橙/梨/西瓜）',c:'fruit',lv:0,kcal:80,tag:''},
+  {n:'高糖水果（香蕉/葡萄/芒果）',c:'fruit',lv:1,kcal:100,tag:'果糖较高'},
+  {n:'动物内脏',c:'risk',lv:2,kcal:150,tag:'极高嘌呤'},
+  {n:'浓肉汤/火锅汤',c:'risk',lv:2,kcal:120,tag:'极高嘌呤'},
+  {n:'贝类/沙丁鱼',c:'risk',lv:2,kcal:140,tag:'高嘌呤'},
+  {n:'油炸食品',c:'risk',lv:1,kcal:350,tag:'高脂'},
+  {n:'蛋糕/甜点',c:'risk',lv:1,kcal:320,tag:'高糖'},
+  {n:'油豆腐/豆皮',c:'risk',lv:1,kcal:200,tag:'油炸豆制品'},
+  {n:'卤味/烧烤',c:'risk',lv:2,kcal:260,tag:'高盐高脂'}
+];
+const CATS=[
+  {k:'drink',n:'饮品'},{k:'staple',n:'主食'},{k:'protein',n:'蛋白'},
+  {k:'veg',n:'蔬菜'},{k:'fruit',n:'水果'},{k:'risk',n:'高风险'},{k:'recent',n:'常用'}
+];
+const MEALS=[
+  {k:'breakfast',n:'早餐'},{k:'lunch',n:'午餐'},{k:'tea',n:'下午茶'},{k:'dinner',n:'晚餐'}
+];
+const EX_TYPES=['快走','游泳','核心训练','拉伸','骑车','其他'];
+const EX_INTENSITY={low:'轻松',mid:'中等',high:'吃力'};
+const BACK_NATURE=['酸痛','刺痛','麻','灼烧'];
+const BACK_TRIGGERS=['久坐','弯腰','起床','走路','搬东西'];
+const BACK_RELIEFS=['躺下','走动','热敷','拉伸'];
+const BACK_DURATION=['<30分钟','1–3小时','半天','一整天'];
+const SED_OPTIONS=['<1小时','1–2小时','2–4小时','>4小时'];
+
+const TIME_SLOTS=[
+  {k:'morning',n:'早上',ico:'☀️',hour:8},
+  {k:'noon',   n:'中午',ico:'🌤️',hour:12},
+  {k:'evening',n:'晚上',ico:'🌙',hour:19},
+  {k:'bedtime',n:'睡前',ico:'🌜',hour:22}
+];
+const TIME_MAP={};TIME_SLOTS.forEach(t=>TIME_MAP[t.k]=t);
+
+const SKIN_DEFS=[
+  {k:'fungal',      n:'腿部真菌'},
+  {k:'folliculitis',n:'毛囊炎'},
+  {k:'seborrheic',  n:'脂溢性皮炎'}
+];
+const SKIN_STATES=[
+  {k:'none',   n:'无'},
+  {k:'improve',n:'好转'},
+  {k:'stable', n:'稳定'},
+  {k:'worse',  n:'加重'}
+];
+const SKIN_MAP={};SKIN_STATES.forEach(s=>SKIN_MAP[s.k]=s);
+
+/* ============================================================
+   4. 状态
+   ============================================================ */
+let tab='log';
+let curDate=todayK();
+let picker={meal:null,cat:'drink'};
+let recentFoods=(()=>{try{return JSON.parse(lsGet('healthlog_recent')||'[]')}catch(e){return[]}})();
+let calMonth=null;
+let medEditId=null;
+let medEditTemp={name:'',times:[],note:''};
+let nutEditMeal=null;
+let nutEditData=null;
+
+function pushRecent(name){
+  recentFoods=[name,...recentFoods.filter(x=>x!==name)].slice(0,10);
+  lsSet('healthlog_recent',JSON.stringify(recentFoods));
+}
+function genId(){return 'm'+Date.now()+Math.random().toString(36).slice(2,6)}
+
+/* ============================================================
+   5. 计算
+   ============================================================ */
+function waterTotal(day){
+  const w=day.water||{};
+  return(w.plain||0)+(w.tea||0)+(w.coffee||0)+(w.diet||0);
+}
+function dayStats(day){
+  let kcal=0,hz=0,wr=0;
+  MEALS.forEach(m=>(day.meals?.[m.k]||[]).forEach(f=>{
+    kcal+=f.kcal||0;
+    if(f.lv===2) hz++;
+    else if(f.lv===1) wr++;
+  }));
+  return{kcal,hz,wr};
+}
+function dayNutrition(day){
+  const totals={protein:0,fat:0,carbs:0,kcal:0,sodium:0,has:false};
+  if(!day.nutrition) return totals;
+  Object.values(day.nutrition).forEach(n=>{
+    if(!n) return;
+    if(n.protein) {totals.protein+=n.protein; totals.has=true;}
+    if(n.fat) {totals.fat+=n.fat; totals.has=true;}
+    if(n.carbs) {totals.carbs+=n.carbs; totals.has=true;}
+    if(n.kcal) {totals.kcal+=n.kcal; totals.has=true;}
+    if(n.sodium) {totals.sodium+=n.sodium; totals.has=true;}
+  });
+  return totals;
+}
+function uricScore(day){
+  if(!day) return null;
+  let s=100;
+  const goal=S.cfg.waterGoal;
+  const wt=waterTotal(day);
+  if(wt<goal) s-=Math.round(25*(1-wt/goal));
+  const st=dayStats(day);
+  s-=st.hz*10;
+  s-=st.wr*4;
+  s-=(day.water?.sugary||0)>0?6:0;
+  s-=(day.water?.alcohol||0)>0?15:0;
+  const sym=day.symptoms||{};
+  s-=(sym.joint?.score||0)*6;
+  s-=(sym.back?.score||0)*4;
+  s-=(sym.urinary?.score||0)*2;
+  return Math.max(0,Math.min(100,s));
+}
+function scoreColor(s){
+  if(s>=85) return '#0d9488';
+  if(s>=65) return '#ea580c';
+  return '#dc2626';
+}
+function scoreLabel(s){
+  if(s>=85) return '优秀';
+  if(s>=65) return '良好';
+  if(s>=50) return '一般';
+  return '较差';
+}
+function todayMedSchedule(){
+  const activeMeds=(S.meds||[]).filter(m=>m.active);
+  const groups={};
+  TIME_SLOTS.forEach(t=>{groups[t.k]=[]});
+  activeMeds.forEach(m=>{
+    (m.times||[]).forEach(t=>{
+      if(groups[t]) groups[t].push(m);
+    });
+  });
+  return groups;
+}
+function isMedTaken(day,medId,slot){
+  return !!(day.medLog&&day.medLog[medId]&&day.medLog[medId][slot]);
+}
+function yesterdayMissed(){
+  const d=new Date(parseD(todayK()));
+  d.setDate(d.getDate()-1);
+  const k=fmt(d);
+  const y=S.days[k];
+  if(!y) return [];
+  const missed=[];
+  const activeMeds=(S.meds||[]).filter(m=>m.active);
+  activeMeds.forEach(m=>{
+    (m.times||[]).forEach(t=>{
+      if(!isMedTaken(y,m.id,t)) missed.push({name:m.name,slot:t,date:k});
+    });
+  });
+  return missed;
+}
+function dueReminders(day){
+  const now=new Date();
+  const curHour=now.getHours();
+  const groups=todayMedSchedule();
+  const due=[];
+  TIME_SLOTS.forEach(t=>{
+    if(groups[t.k].length===0) return;
+    if(curHour < t.hour) return;
+    const missing=groups[t.k].filter(m=>!isMedTaken(day,m.id,t.k));
+    if(missing.length>0) due.push({slot:t,missing});
+  });
+  return due;
+}
+
+/* ============================================================
+   6. 渲染工具
+   ============================================================ */
+const viewEl=document.getElementById('view');
+function esc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// 修复：始终保留 data-toggle，折叠状态只由 .collapsed class 控制
+function card(id,title,sub,bodyHTML,extraCls){
+  const collapsed=S.collapsed[id];
+  return `
+    <div class="card ${extraCls||''} ${collapsed?'collapsed':''}" data-card="${id}">
+      <div class="ch tog" data-toggle="${id}">
+        <span class="t">${title} <span class="caret">▼</span></span>
+        <span class="s">${sub||''}</span>
+      </div>
+      <div class="body">${bodyHTML}</div>
+    </div>`;
+}
+
+/* ============================================================
+   7. 记录页
+   ============================================================ */
+function logView(){
+  const day=getDay(curDate);
+  const isToday=curDate===todayK();
+  const goal=S.cfg.waterGoal;
+  const wt=waterTotal(day);
+  const wpct=Math.min(100,Math.round(wt/goal*100));
+  const sc=uricScore(day);
+  const st=dayStats(day);
+  const nut=dayNutrition(day);
+  const early=isEarlyMorning();
+
+  const schedule=todayMedSchedule();
+  const activeMeds=(S.meds||[]).filter(m=>m.active);
+  let medCardHTML='';
+  if(activeMeds.length===0){
+    medCardHTML=card('med','💊 今日用药','',
+      `<div class="empty" style="text-align:center;padding:16px 0">还没有添加药物<br>去「我的」→ 我的药 里添加</div>`,'c-med');
+  }else{
+    let slotsHTML='';
+    TIME_SLOTS.forEach(t=>{
+      const meds=schedule[t.k];
+      if(!meds||meds.length===0) return;
+      const rows=meds.map(m=>{
+        const taken=isMedTaken(day,m.id,t.k);
+        return `
+          <div class="med-item ${taken?'done':''}">
+            <div class="mi-info">
+              <div class="mi-nm">${esc(m.name)}</div>
+              ${m.note?`<div class="mi-note">${esc(m.note)}</div>`:''}
+            </div>
+            <button class="mi-check" data-med-take="${m.id}:${t.k}">✓</button>
+          </div>`;
+      }).join('');
+      slotsHTML+=`
+        <div class="med-time-block">
+          <div class="med-time-hd"><span class="tmico">${t.ico}</span>${t.n}</div>
+          ${rows}
+        </div>`;
+    });
+    medCardHTML=card('med','💊 今日用药','',slotsHTML,'c-med');
+  }
+
+  let alertHTML='';
+  if(isToday){
+    const miss=yesterdayMissed();
+    if(miss.length>0 && new Date().getHours()>=8){
+      const names=[...new Set(miss.map(x=>x.name))].join('、');
+      alertHTML+=`<div class="med-alert danger">
+        <span class="ai">⚠️</span>
+        <div><b>昨天有药没打勾</b>（${esc(names)}）。如果确实忘了，今天补上；如果吃了只是没点，切到昨天补打勾。</div>
+      </div>`;
+    }
+    const due=dueReminders(day);
+    due.forEach(d=>{
+      const names=d.missing.map(m=>m.name).join('、');
+      alertHTML+=`<div class="med-alert">
+        <span class="ai">${d.slot.ico}</span>
+        <div><b>${d.slot.n}的药还没打勾</b> —— ${esc(names)}</div>
+      </div>`;
+    });
+  }
+
+  const missDaysList=[];
+  for(let i=1;i<=7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const k=fmt(d);
+    if(!S.days[k]) missDaysList.push(k);
+  }
+  const missCard=missDaysList.length>=2?`
+    <div class="miss">
+      <div class="miss-t">📌 过去 7 天有 ${missDaysList.length} 天没记录，点一下补</div>
+      <div class="miss-d">
+        ${missDaysList.map(k=>`<button class="miss-chip" data-jump="${k}">${humanD(k)} ${WD[parseD(k).getDay()]}</button>`).join('')}
+      </div>
+    </div>`:'';
+
+  let goalCard='';
+  if(S.goal&&S.goal.type==='weight'){
+    const g=S.goal;
+    const wKeys=Object.keys(S.days).filter(k=>typeof S.days[k].weight==='number'&&S.days[k].weight>0).sort();
+    const curW=wKeys.length?S.days[wKeys[wKeys.length-1]].weight:null;
+    if(curW!=null){
+      const total=g.startValue-g.targetValue;
+      const done=g.startValue-curW;
+      const pct=total>0?Math.max(0,Math.min(100,Math.round(done/total*100))):0;
+      const remain=diffDays(g.endDate,todayK());
+      const daysUsed=diffDays(todayK(),g.startDate);
+      const rate=daysUsed>0?done/daysUsed:0;
+      const needRate=remain>0?(g.targetValue-curW)/remain:-999;
+      let pace='';
+      if(rate>=needRate&&needRate>0) pace='按当前节奏能达标';
+      else if(needRate>0) pace='按当前节奏偏慢';
+      else pace='目标已到或已超额';
+      goalCard=`
+        <div class="goal-card">
+          <div class="gt">🎯 阶段目标 · 体重</div>
+          <div class="gm"><span>${g.startValue} → ${g.targetValue} kg</span><span>${pct}%</span></div>
+          <div class="gb"><i style="width:${pct}%"></i></div>
+          <div class="gf">当前 <b>${curW} kg</b> · 已减 ${done.toFixed(1)} kg · 剩 ${remain>0?remain+' 天':'已到期'}<br>${pace}</div>
+        </div>`;
+    }
+  }
+
+  const dateLabel=isToday?'今天':humanD(curDate);
+  const subLabel=isToday&&early?'（凌晨归属昨日）':WD[parseD(curDate).getDay()];
+  const datebar=`
+    <div class="datebar">
+      <button class="nbtn" data-day="-1">‹</button>
+      <div class="mid" data-pickdate><b>${dateLabel}</b><span>${subLabel}</span></div>
+      <button class="nbtn ${isToday?'dis':''}" data-day="1">›</button>
+      <button class="nbtn" data-goto-cal>📅</button>
+    </div>`;
+
+  const R=34,C=2*Math.PI*R;
+  const off=C*(1-sc/100);
+  const scoreCard=`
+    <div class="score-card">
+      <div class="score-ring">
+        <svg width="82" height="82" viewBox="0 0 82 82">
+          <circle cx="41" cy="41" r="${R}" fill="none" stroke="#eef2f0" stroke-width="7"/>
+          <circle cx="41" cy="41" r="${R}" fill="none" stroke="${scoreColor(sc)}" stroke-width="7"
+            stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" stroke-linecap="round"/>
+        </svg>
+        <div class="v"><b style="color:${scoreColor(sc)}">${sc}</b><span>尿酸友好度</span></div>
+      </div>
+      <div class="score-info">
+        <div class="lbl">${scoreLabel(sc)}</div>
+        <div class="desc">饮水 ${wt}/${goal}ml · 高嘌呤 ${st.hz} 项${nut.has?` · ${Math.round(nut.kcal)} kcal`:''}</div>
+        <div class="tips">${sc>=85?'今天做得不错，保持住。':sc>=65?'还行，还有改进空间。':'今天风险偏高，看看下面哪项拉低了分。'}</div>
+      </div>
+    </div>`;
+
+  const waterTypes=[
+    {k:'plain',n:'白水'},{k:'tea',n:'茶'},{k:'coffee',n:'咖啡'},{k:'diet',n:'无糖饮料'},
+    {k:'sugary',n:'含糖饮料',warn:true},{k:'alcohol',n:'酒',warn:true}
+  ];
+  const waterRows=waterTypes.map(t=>{
+    const v=day.water[t.k]||0;
+    return `
+      <div class="wrow">
+        <div class="wn">${t.n}${t.warn?' <span class="wtag">⚠</span>':''}</div>
+        <div class="wv ${v>0?'act':''}">${v}ml</div>
+        <div class="wq">
+          <button class="wbtn" data-water="${t.k}:200">+200</button>
+          <button class="wbtn" data-water="${t.k}:500">+500</button>
+          ${v>0?`<button class="wbtn neg" data-water="${t.k}:-200">−</button>`:''}
+        </div>
+      </div>`;
+  }).join('');
+  const waterBody=`
+    <div class="wsum">
+      <div class="n">${wt}<small>/ ${goal} ml</small></div>
+      <div class="pct" style="color:${wt>=goal?'#0d9488':'#ea580c'}">${wpct}%</div>
+    </div>
+    <div class="bar"><i style="width:${wpct}%"></i></div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:8px;line-height:1.5">白水+茶+咖啡+无糖饮料计入补水；含糖饮料和酒不算</div>
+    ${waterRows}`;
+  const waterCard=card('water','💧 饮水',wt+' ml',waterBody,'c-water');
+
+  const bodyBody=`
+    <div class="f"><label>体重</label>
+      <input class="inp" type="number" inputmode="decimal" step="0.1" data-field="weight"
+        value="${day.weight!=null?day.weight:''}" placeholder="83.5"><span class="unit">kg</span></div>
+    <div class="f"><label>腰围</label>
+      <input class="inp" type="number" inputmode="decimal" step="0.1" data-field="waist"
+        value="${day.waist!=null?day.waist:''}" placeholder="肚脐水平"><span class="unit">cm</span></div>
+    <div class="f"><label>血压</label>
+      <input class="inp short" type="number" inputmode="numeric" data-bp="sys" value="${day.bp?.sys??''}" placeholder="收缩">
+      <span style="color:var(--mu);font-size:12px">/</span>
+      <input class="inp short" type="number" inputmode="numeric" data-bp="dia" value="${day.bp?.dia??''}" placeholder="舒张">
+      <span class="unit">mmHg</span></div>
+    <div class="f"><label>心率</label>
+      <input class="inp short" type="number" inputmode="numeric" data-bp="hr" value="${day.bp?.hr??''}" placeholder="可选"><span class="unit">bpm</span></div>`;
+  const bodyCard=card('body','⚖️ 身体',day.weight?day.weight+' kg':'',bodyBody,'c-body');
+
+  const sleepBody=`
+    <div class="f"><label>睡眠时长</label>
+      <input class="inp" type="number" inputmode="decimal" step="0.5" data-sleep="hours"
+        value="${day.sleep?.hours??''}" placeholder="例如 6.5"><span class="unit">h</span></div>
+    <div class="f"><label>夜尿次数</label>
+      <input class="inp" type="number" inputmode="numeric" data-sleep="nocturia"
+        value="${day.sleep?.nocturia??''}" placeholder="起夜几次"><span class="unit">次</span></div>
+    <div class="sub-lbl">睡眠质量</div>
+    <div class="dots">${[1,2,3,4,5].map(v=>`<div class="dot ${day.sleep?.quality===v?'on wr':''}" data-sleep-q="${v}">${v}</div>`).join('')}</div>`;
+  const sleepCard=card('sleep','🌙 睡眠',day.sleep?.hours?day.sleep.hours+' h':'',sleepBody,'c-sleep');
+
+  const exRows=(day.exercise||[]).map((e,i)=>`
+    <div class="ex">
+      <div style="flex:1;min-width:0">
+        <div class="en">${esc(e.type)}</div>
+        <div class="em">${e.duration} 分钟 · ${EX_INTENSITY[e.intensity]||''}${e.backReaction!=null?' · 腰反应 '+e.backReaction+'分':''}</div>
+      </div>
+      <span class="x" data-del-ex="${i}">×</span>
+    </div>`).join('');
+  const exBody=`
+    ${exRows||'<div class="empty">今天还没记运动</div>'}
+    <div class="addrow">
+      <select class="sel" id="exType">${EX_TYPES.map(t=>`<option>${t}</option>`).join('')}</select>
+      <input class="inp short" id="exDur" type="number" inputmode="numeric" placeholder="分钟" style="flex:0 0 80px">
+    </div>
+    <div class="addrow">
+      <select class="sel" id="exInt">
+        <option value="low">轻松</option><option value="mid" selected>中等</option><option value="high">吃力</option>
+      </select>
+      <input class="inp short" id="exBack" type="number" inputmode="numeric" placeholder="腰反应 0–5" style="flex:0 0 120px">
+    </div>
+    <div class="addrow"><button class="btn pri" data-add-ex style="flex:1">加入运动</button></div>`;
+  const exCard=card('ex','🏃 运动',(day.exercise||[]).length+' 项',exBody,'c-ex');
+
+  const mealsHTML=MEALS.map(m=>{
+    const list=day.meals[m.k]||[];
+    const nutData=day.nutrition?.[m.k];
+    const foodKcal=list.reduce((a,f)=>a+(f.kcal||0),0);
+    const totalKcal=nutData?.kcal||foodKcal;
+    const open=picker.meal===m.k;
+
+    const chips=list.length
+      ?`<div class="chips">${list.map((f,i)=>`
+          <span class="fchip ${f.lv===2?'hz':f.lv===1?'wr':''}">${esc(f.n)}<span class="x" data-del-food="${m.k}:${i}">×</span></span>`).join('')}</div>`
+      :`<div class="empty">还没记</div>`;
+
+    const nutBar=nutData?`
+      <div class="nut-bar">
+        <span class="nb-ico">📊</span>
+        <div class="nb-txt">
+          ${nutData.label?`<div class="nut-label">${esc(nutData.label)}</div>`:''}
+          ${nutData.protein?`<b>蛋白</b> ${Math.round(nutData.protein)}g · `:''}${nutData.fat?`<b>脂肪</b> ${Math.round(nutData.fat)}g · `:''}${nutData.carbs?`<b>碳水</b> ${Math.round(nutData.carbs)}g · `:''}${nutData.kcal?`<b>${Math.round(nutData.kcal)}</b> kcal`:''}${nutData.sodium?` · <b>钠</b> ${Math.round(nutData.sodium)}mg`:''}
+        </div>
+        <span class="nb-x" data-nut-del="${m.k}">×</span>
+      </div>`:'';
+
+    let foods=picker.cat==='recent'
+      ?recentFoods.map(n=>FOODS.find(f=>f.n===n)).filter(Boolean)
+      :FOODS.filter(f=>f.c===picker.cat);
+    const grid=foods.length
+      ?foods.map(f=>`
+          <button class="food" data-add="${esc(f.n)}">
+            <b>${esc(f.n)}</b>
+            <i class="${f.lv===2?'hz':f.lv===1?'wr':''}">${f.tag||(f.kcal?f.kcal+' kcal':'')}</i>
+          </button>`).join('')
+      :`<div style="grid-column:1/-1;font-size:12.5px;color:#b8c3bf;padding:14px 0;text-align:center;font-style:italic">暂无常用</div>`;
+
+    const pickerHTML=open?`
+      <div class="picker">
+        <div class="cats">${CATS.map(c=>`<div class="cat ${picker.cat===c.k?'on':''}" data-cat="${c.k}">${c.n}</div>`).join('')}</div>
+        <div class="foods">${grid}</div>
+        <div class="free">
+          <input class="inp" id="freeInp" placeholder="手动输入…">
+          <button class="btn pri" style="flex:0 0 66px" data-free-add="${m.k}">加</button>
+        </div>
+      </div>`:'';
+
+    return `
+      <div class="meal">
+        <div class="meal-hd">
+          <span class="nm">${m.n}</span>
+          ${totalKcal?`<span class="kc">${Math.round(totalKcal)} kcal</span>`:''}
+          <div class="mnut ${nutData?'on':''}" data-nut-open="${m.k}" title="粘贴营养分析">📊</div>
+          <div class="madd ${open?'on':''}" data-open="${m.k}">+</div>
+        </div>
+        ${chips}
+        ${nutBar}
+        ${pickerHTML}
+      </div>`;
+  }).join('');
+  const dietCard=card('diet','🍽️ 饮食',nut.has?`${Math.round(nut.kcal)} kcal`:st.kcal+' kcal',mealsHTML,'c-diet');
+
+  const back=day.symptoms.back;
+  const joint=day.symptoms.joint;
+  const urinary=day.symptoms.urinary;
+
+  const backPart=`
+    <div class="sym">
+      <div class="sym-hd"><span class="sn">腰痛</span><span class="sv ${back.score>0?'on':''}">${back.score>0?back.score+' 分':'—'}</span></div>
+      <div class="dots">${[0,1,2,3,4,5].map(v=>`<div class="dot ${back.score===v?'on':''}" data-back-score="${v}">${v}</div>`).join('')}</div>
+      ${back.score>0?`
+        <div class="sub-lbl">性质</div>
+        <div class="chips">${BACK_NATURE.map(n=>`<div class="chip ${back.nature===n?'on':''}" data-back-nature="${n}">${n}</div>`).join('')}</div>
+        <div class="sub-lbl">诱发</div>
+        <div class="chips">${BACK_TRIGGERS.map(t=>`<div class="chip ${back.triggers.includes(t)?'on':''}" data-back-trigger="${t}">${t}</div>`).join('')}</div>
+        <div class="sub-lbl">缓解</div>
+        <div class="chips">${BACK_RELIEFS.map(r=>`<div class="chip ${back.reliefs.includes(r)?'on':''}" data-back-relief="${r}">${r}</div>`).join('')}</div>
+        <div class="sub-lbl">持续时长</div>
+        <div class="chips">${BACK_DURATION.map(d=>`<div class="chip ${back.duration===d?'on':''}" data-back-duration="${d}">${d}</div>`).join('')}</div>
+      `:''}
+      <div class="sub-lbl">今天连续久坐最久一次</div>
+      <div class="sed-row">${SED_OPTIONS.map(o=>`<div class="sed-b ${day.sedentary===o?'on':''}" data-sed="${o}">${o}</div>`).join('')}</div>
+    </div>`;
+
+  const jointPart=`
+    <div class="sym">
+      <div class="sym-hd"><span class="sn">关节痛</span><span class="sv ${joint.score>0?'on':''}">${joint.score>0?joint.score+' 分':'—'}</span></div>
+      <div class="dots">${[0,1,2,3,4,5].map(v=>`<div class="dot ${joint.score===v?'on':''}" data-joint-score="${v}">${v}</div>`).join('')}</div>
+      ${joint.score>0?`<div class="sub-lbl">部位</div>
+        <div class="chips">${['大脚趾','左脚踝','右脚踝','膝盖','其他'].map(s=>`
+          <div class="chip ${joint.sites.includes(s)?'on':''}" data-joint-site="${s}">${s}</div>`).join('')}</div>`:''}
+    </div>`;
+
+  const urinaryPart=`
+    <div class="sym">
+      <div class="sym-hd"><span class="sn">排尿不适</span><span class="sv ${urinary.score>0?'on':''}">${urinary.score>0?urinary.score+' 分':'—'}</span></div>
+      <div class="dots">${[0,1,2,3,4,5].map(v=>`<div class="dot ${urinary.score===v?'on wr':''}" data-urinary-score="${v}">${v}</div>`).join('')}</div>
+      ${urinary.score>0?`<div class="sub-lbl">症状</div>
+        <div class="chips">${['尿频','尿急','尿痛','尿不尽','会阴坠胀'].map(s=>`
+          <div class="chip ${urinary.sites.includes(s)?'on':''}" data-urinary-site="${s}">${s}</div>`).join('')}</div>`:''}
+    </div>`;
+
+  const symCard=card('sym','🩺 症状',(back.score>0||joint.score>0||urinary.score>0)?'有':'',`${backPart}${jointPart}${urinaryPart}`,'c-sym');
+
+  const skinRows=SKIN_DEFS.map(sd=>{
+    const cur=day.skin[sd.k];
+    const curLabel=cur?SKIN_MAP[cur].n:'未记';
+    const curCls=cur||'none';
+    const states=SKIN_STATES.map(s=>`
+      <div class="skin-st ${cur===s.k?'on':''}" data-skin="${sd.k}:${s.k}" data-skin-val="${s.k}">${s.n}</div>`).join('');
+    return `
+      <div class="skin-row">
+        <div class="skin-name">${sd.n}<span class="cur ${curCls}">${curLabel}</span></div>
+        <div class="skin-states">${states}</div>
+      </div>`;
+  }).join('');
+  const skinSub=(()=>{
+    const vals=Object.values(day.skin||{}).filter(v=>v);
+    if(!vals.length) return '';
+    const worse=vals.filter(v=>v==='worse').length;
+    const improve=vals.filter(v=>v==='improve').length;
+    if(worse>0) return worse+' 项加重';
+    if(improve>0) return improve+' 项好转';
+    return '稳定';
+  })();
+  const skinCard=card('skin','🩹 皮肤',skinSub,skinRows,'c-skin');
+
+  const voidBody=`
+    <div class="f"><label>白天排尿</label>
+      <input class="inp short" type="number" inputmode="numeric" data-void="day" value="${day.voiding.day??''}" placeholder="次"><span class="unit">次</span></div>
+    <div class="f"><label>夜尿</label>
+      <input class="inp short" type="number" inputmode="numeric" data-void="night" value="${day.voiding.night??''}" placeholder="次"><span class="unit">次</span></div>
+    <div class="sub-lbl">伴随症状</div>
+    <div class="chips">
+      <div class="chip ${day.voiding.urgency?'on':''}" data-void-flag="urgency">尿急</div>
+      <div class="chip ${day.voiding.pain?'on':''}" data-void-flag="pain">尿痛</div>
+      <div class="chip ${day.voiding.incomplete?'on':''}" data-void-flag="incomplete">尿不尽</div>
+    </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--ln)">
+      <div class="f"><label>排便次数</label>
+        <input class="inp short" type="number" inputmode="numeric" data-bowel="count" value="${day.bowel.count??''}" placeholder="次"><span class="unit">次</span></div>
+      <div class="sub-lbl">大便性状（布里斯托 1–7）</div>
+      <div class="dots">${[1,2,3,4,5,6,7].map(v=>`<div class="dot ${day.bowel.type===v?'on wr':''}" data-bowel-t="${v}">${v}</div>`).join('')}</div>
+    </div>`;
+  const voidCard=card('void','🚻 排尿 / 排便','',voidBody,'c-void');
+
+  const noteBody=`<textarea class="inp" rows="3" data-note placeholder="用药感受、身体变化、其他…" style="resize:vertical">${esc(day.note||'')}</textarea>`;
+  const noteCard=card('note','📝 备注','',noteBody,'c-note');
+
+  const tips=[];
+  if(wt<goal) tips.push({t:`补水还差 <b>${goal-wt} ml</b>，尿酸 567 的人每天 2500ml 是底线。`,bad:true});
+  else tips.push({t:'补水达标，保持住。',bad:false});
+  if(st.hz) tips.push({t:`今天有 <b>${st.hz}</b> 项高嘌呤食物。`,bad:true});
+  if(day.water.sugary) tips.push({t:'含糖饮料（果糖）同时推高尿酸和脂肪肝风险。',bad:true});
+  if(day.water.alcohol) tips.push({t:'喝酒了 —— 酒精会直接让尿酸飙升。',bad:true});
+  if(back.score>=3) tips.push({t:'腰痛 ≥3 分 —— 若往腿上跑、麻木无力，立即就医。',bad:true});
+  if(joint.score>=3) tips.push({t:'关节痛 ≥3 分 —— 痛风发作别硬扛，尽快就诊。',bad:true});
+  if(day.sedentary==='>4小时') tips.push({t:'今天久坐超过 4 小时 —— 很可能就是腰酸的原因，明天每小时起来 2 分钟。',bad:true});
+  if(day.sleep?.hours&&day.sleep.hours<S.cfg.sleepGoal) tips.push({t:`睡眠 ${day.sleep.hours}h，低于目标 ${S.cfg.sleepGoal}h。`,bad:true});
+  if(day.waist&&day.waist>=S.cfg.waistGoal) tips.push({t:`腰围 ${day.waist}cm，超过男性 ${S.cfg.waistGoal}cm 红线。`,bad:true});
+  if(nut.has&&nut.kcal>S.cfg.kcalGoal) tips.push({t:`今日约 ${Math.round(nut.kcal)} kcal，超过 ${S.cfg.kcalGoal}。`,bad:true});
+  if(nut.has&&nut.sodium>3000) tips.push({t:`今日钠 ${Math.round(nut.sodium)}mg，明显超标（建议 <2000mg）。`,bad:true});
+  if(day.skin.worse==='worse') tips.push({t:'皮肤加重 —— 如果同时有熬夜/喝酒/吃辣，可能相关，注意观察。',bad:true});
+
+  const tipCard=`
+    <div class="card c-note">
+      <div class="ch"><span class="t"><span class="ico">💡</span> 今日提醒</span></div>
+      ${tips.map(x=>`<div class="tip ${x.bad?'':'ok'}"><i class="dt"></i><div>${x.t}</div></div>`).join('')}
+    </div>`;
+
+  return `
+    <div class="hd">${datebar}<h1>${isToday?'今天也好好照顾自己':humanFull(curDate)}</h1></div>
+    ${alertHTML}
+    ${missCard}
+    ${goalCard}
+    ${medCardHTML}
+    ${scoreCard}
+    ${waterCard}
+    ${bodyCard}
+    ${sleepCard}
+    ${exCard}
+    ${dietCard}
+    ${symCard}
+    ${skinCard}
+    ${voidCard}
+    ${noteCard}
+    ${tipCard}
+  `;
+}
+
+/* ============================================================
+   8. 日历页
+   ============================================================ */
+function calView(){
+  const today=todayK();
+  const base=curDate?parseD(curDate):parseD(today);
+  if(!calMonth) calMonth={y:base.getFullYear(),m:base.getMonth()};
+  const first=new Date(calMonth.y,calMonth.m,1);
+  const lastDay=new Date(calMonth.y,calMonth.m+1,0).getDate();
+  const startWd=first.getDay();
+  const wdHeader=['日','一','二','三','四','五','六'].map(w=>`<div class="cal-wd">${w}</div>`).join('');
+
+  let cells='';
+  for(let i=0;i<startWd;i++) cells+='<div class="cal-d empty"></div>';
+  for(let d=1;d<=lastDay;d++){
+    const dk=`${calMonth.y}-${pad(calMonth.m+1)}-${pad(d)}`;
+    const day=S.days[dk];
+    let lv='';
+    if(day){
+      const sc=uricScore(day);
+      if(sc!=null){
+        if(sc>=85) lv='lv3';
+        else if(sc>=65) lv='lv2';
+        else if(sc>=50) lv='lv1';
+        else lv='lv0';
+      }
+    }
+    const isToday=dk===today;
+    const isSel=dk===curDate;
+    cells+=`
+      <div class="cal-d ${lv} ${isToday?'today':''} ${isSel?'sel':''}" data-jump="${dk}">
+        <span class="dn">${d}</span>
+        ${day?.weight?`<span class="dd">${day.weight.toFixed(1)}</span>`:''}
+      </div>`;
+  }
+
+  let daysWithData=0,okWater=0,alcDays=0,exDays=0,hzTotal=0;
+  for(let d=1;d<=lastDay;d++){
+    const dk=`${calMonth.y}-${pad(calMonth.m+1)}-${pad(d)}`;
+    const day=S.days[dk];
+    if(!day) continue;
+    daysWithData++;
+    if(waterTotal(day)>=S.cfg.waterGoal) okWater++;
+    if((day.water?.alcohol||0)>0) alcDays++;
+    if((day.exercise||[]).length) exDays++;
+    hzTotal+=dayStats(day).hz;
+  }
+  const monthName=`${calMonth.y}年${calMonth.m+1}月`;
+
+  return `
+    <div class="hd">
+      <div class="cal-hd">
+        <button class="nbtn" data-cal="-1">‹</button>
+        <b>${monthName}</b>
+        <button class="nbtn" data-cal="1">›</button>
+      </div>
+    </div>
+    <div class="card" style="padding:16px 14px">
+      <div class="cal-grid">${wdHeader}${cells}</div>
+      <div class="legend">
+        <span><i style="background:#dbf0eb;border-color:#93cec3"></i>优秀 ≥85</span>
+        <span><i style="background:#f0f9f7;border-color:#c3e4de"></i>良好 65–84</span>
+        <span><i style="background:#fff2e8;border-color:#fad3b5"></i>一般 50–64</span>
+        <span><i style="background:#fdeaea;border-color:#f5c7c7"></i>较差 &lt;50</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="t"><span class="ico">📊</span> ${monthName} 汇总</span></div>
+      <div class="rec"><span class="k">记录天数</span><span class="v">${daysWithData} 天</span></div>
+      <div class="rec"><span class="k">饮水达标</span><span class="v">${okWater} 天</span></div>
+      <div class="rec"><span class="k">饮酒天数</span><span class="v ${alcDays>2?'bad':''}">${alcDays} 天</span></div>
+      <div class="rec"><span class="k">运动天数</span><span class="v">${exDays} 天</span></div>
+      <div class="rec"><span class="k">高嘌呤次数</span><span class="v ${hzTotal>10?'bad':''}">${hzTotal} 次</span></div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   9. 趋势页
+   ============================================================ */
+function trendView(){
+  const recent=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const k=fmt(d);
+    if(S.days[k]) recent.push({k,day:S.days[k]});
+  }
+  const rel=[];
+  const alc=recent.filter(x=>(x.day.water?.alcohol||0)>0);
+  const alcWeak=alc.filter(x=>{
+    const d2=new Date(parseD(x.k)); d2.setDate(d2.getDate()+1);
+    const nd=S.days[fmt(d2)];
+    return nd&&waterTotal(nd)<S.cfg.waterGoal;
+  });
+  if(alc.length>=2&&alcWeak.length>=alc.length*0.6){
+    rel.push(`近两周 ${alc.length} 次饮酒，其中 ${alcWeak.length} 次第二天饮水没达标。`);
+  }
+  const sed4=recent.filter(x=>x.day.sedentary==='>4小时');
+  const sed4Back=sed4.filter(x=>(x.day.symptoms?.back?.score||0)>=2);
+  if(sed4.length>=2&&sed4Back.length>=2){
+    rel.push(`久坐>4h 的 ${sed4.length} 天里，有 ${sed4Back.length} 天腰痛 ≥2 分——高度相关。`);
+  }
+  const hz=recent.filter(x=>dayStats(x.day).hz>0);
+  const hzBack=hz.filter(x=>{
+    const d2=new Date(parseD(x.k)); d2.setDate(d2.getDate()+1);
+    const nd=S.days[fmt(d2)];
+    return nd&&(nd.symptoms?.back?.score||0)>=2;
+  });
+  if(hz.length>=2&&hzBack.length>=2){
+    rel.push(`高嘌呤餐后第二天腰痛加重：${hzBack.length}/${hz.length} 次。`);
+  }
+  const lowS=recent.filter(x=>(x.day.sleep?.hours||99)<6);
+  if(lowS.length>=3) rel.push(`近两周有 ${lowS.length} 天睡不到 6 小时。`);
+  const worseDays=recent.filter(x=>Object.values(x.day.skin||{}).includes('worse'));
+  if(worseDays.length>=3) rel.push(`近两周有 ${worseDays.length} 天皮肤加重，留意和饮食/睡眠的关联。`);
+  const highSodium=recent.filter(x=>{
+    const n=dayNutrition(x.day);
+    return n.has&&n.sodium>3000;
+  });
+  if(highSodium.length>=3) rel.push(`近两周有 ${highSodium.length} 天钠摄入 >3000mg，注意控盐。`);
+  const highKcal=recent.filter(x=>{
+    const n=dayNutrition(x.day);
+    return n.has&&n.kcal>S.cfg.kcalGoal;
+  });
+  if(highKcal.length>=4) rel.push(`近两周有 ${highKcal.length} 天热量超标，这是减重的主要阻力。`);
+
+  if(!rel.length) rel.push('数据还不够，多记几天就能看出规律。');
+
+  const relCard=`
+    <div class="card c-note">
+      <div class="ch"><span class="t"><span class="ico">🔗</span> 关联提示</span></div>
+      ${rel.map(r=>`<div class="tip ok"><i class="dt"></i><div>${esc(r)}</div></div>`).join('')}
+    </div>`;
+
+  const wKeys=Object.keys(S.days).filter(k=>typeof S.days[k].weight==='number'&&S.days[k].weight>0).sort();
+  const latestW=wKeys.length?S.days[wKeys[wKeys.length-1]].weight:null;
+  const uaSorted=[...S.uric].sort((a,b)=>a.date.localeCompare(b.date));
+  const lastUA=uaSorted[uaSorted.length-1];
+
+  return `
+    <div class="hd"><h1>趋势</h1></div>
+    <div class="card c-body">
+      <div class="ch"><span class="t"><span class="ico">⚖️</span> 体重</span><span class="s">${wKeys.length} 次</span></div>
+      <canvas id="cW" style="width:100%;height:150px;display:block"></canvas>
+      <div class="sg" style="margin-top:12px">
+        <div class="st2"><b>${latestW!=null?latestW.toFixed(1):'—'}</b><span>当前 kg</span></div>
+        <div class="st2"><b>${S.cfg.weightGoal}</b><span>目标 kg</span></div>
+      </div>
+    </div>
+    <div class="card c-body">
+      <div class="ch"><span class="t"><span class="ico">📏</span> 腰围</span><span class="s">目标 &lt; ${S.cfg.waistGoal} cm</span></div>
+      <canvas id="cWaist" style="width:100%;height:140px;display:block"></canvas>
+    </div>
+    <div class="card c-water">
+      <div class="ch"><span class="t"><span class="ico">💧</span> 饮水（近 14 天）</span></div>
+      <canvas id="cWa" style="width:100%;height:130px;display:block"></canvas>
+      <div style="font-size:11.5px;color:var(--mu);margin-top:8px">虚线 = 目标 ${S.cfg.waterGoal} ml</div>
+    </div>
+    <div class="card c-sleep">
+      <div class="ch"><span class="t"><span class="ico">🌙</span> 睡眠（近 14 天）</span></div>
+      <canvas id="cSleep" style="width:100%;height:130px;display:block"></canvas>
+      <div style="font-size:11.5px;color:var(--mu);margin-top:8px">虚线 = 目标 ${S.cfg.sleepGoal} h</div>
+    </div>
+    <div class="card c-sym">
+      <div class="ch"><span class="t"><span class="ico">🩸</span> 尿酸</span><span class="s">目标 &lt; ${S.cfg.uaGoal}</span></div>
+      <canvas id="cU" style="width:100%;height:140px;display:block"></canvas>
+      ${lastUA?`<div style="font-size:12px;color:var(--mu);margin-top:10px">
+        最近：<b style="color:${lastUA.value>S.cfg.uaGoal?'#dc2626':'#0d9488'}">${lastUA.value}</b> umol/L（${humanD(lastUA.date)}）
+      </div>`:''}
+    </div>
+    <div class="card c-diet">
+      <div class="ch"><span class="t"><span class="ico">📊</span> 热量（近 14 天）</span><span class="s">目标 &lt; ${S.cfg.kcalGoal}</span></div>
+      <canvas id="cKcal" style="width:100%;height:130px;display:block"></canvas>
+      <div style="font-size:11.5px;color:var(--mu);margin-top:8px">虚线 = 目标 ${S.cfg.kcalGoal} kcal · 数据来自粘贴的营养分析</div>
+    </div>
+    ${relCard}
+  `;
+}
+
+/* ============================================================
+   10. 复查页
+   ============================================================ */
+function nextDateOf(it){
+  const d=parseD(it.last);
+  d.setMonth(d.getMonth()+it.months);
+  return d;
+}
+function checkView(){
+  const today=todayK();
+  const items=S.checkups.map(it=>{
+    const nd=nextDateOf(it);
+    return{...it,next:fmt(nd),diff:diffDays(fmt(nd),today)};
+  }).sort((a,b)=>a.diff-b.diff);
+  const overdue=items.filter(i=>i.diff<0);
+
+  const rows=items.map(it=>{
+    let cls='ok',txt='';
+    if(it.diff<0){cls='over';txt='逾期 '+Math.abs(it.diff)+' 天';}
+    else if(it.diff<=14){cls='soon';txt='还有 '+it.diff+' 天';}
+    else{cls='ok';txt='还有 '+it.diff+' 天';}
+    return `
+      <div class="chk">
+        <div class="info">
+          <div class="nm">${esc(it.name)}</div>
+          <div class="mt">${esc(it.dept)} · 每 ${it.months} 个月 · 下次 ${it.next}</div>
+        </div>
+        <span class="pill ${cls}">${txt}</span>
+        <button class="mbtn" data-done="${it.id}">完成</button>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="hd"><h1>复查提醒</h1></div>
+    ${overdue.length?`
+    <div class="card" style="border-color:#f5c7c7;background:#fffbfb">
+      <div class="ch"><span class="t" style="color:#dc2626"><span class="ico">⚠️</span> 已逾期 ${overdue.length} 项</span></div>
+      ${overdue.map(i=>`<div class="tip"><i class="dt"></i><div><b>${esc(i.name)}</b><br><span style="color:var(--mu);font-size:12px">${esc(i.dept)} · 逾期 ${Math.abs(i.diff)} 天</span></div></div>`).join('')}
+    </div>`:''}
+    <div class="card">
+      <div class="ch"><span class="t"><span class="ico">📋</span> 全部复查项</span></div>
+      ${rows}
+    </div>
+    <div class="card c-note">
+      <div class="ch"><span class="t"><span class="ico">🚩</span> 出现这些，别等复查</span></div>
+      <div class="tip"><i class="dt"></i><div><b>关节红肿热痛</b>（大脚趾/脚踝）→ 痛风发作，尽快就诊</div></div>
+      <div class="tip"><i class="dt"></i><div><b>腿麻、无力、大小便异常</b> → 腰椎压迫，立即急诊</div></div>
+      <div class="tip"><i class="dt"></i><div><b>大量飞蚊、闪光、视野遮挡</b> → 视网膜风险，立即眼科</div></div>
+      <div class="tip"><i class="dt"></i><div><b>咳嗽、痰中带血、胸痛、发热</b> → 肺结节提前复查</div></div>
+      <div class="tip"><i class="dt"></i><div><b>尿频尿急尿痛加重、发热</b> → 前列腺炎急性发作</div></div>
+      <div class="tip"><i class="dt"></i><div><b>皮肤红肿扩大、化脓、发热</b> → 皮肤科别拖</div></div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   11. 我的页
+   ============================================================ */
+function meView(){
+  const lastBackup=lsGet('healthlog_last_backup');
+  const daysSince=lastBackup?diffDays(todayK(),lastBackup):null;
+  const g=S.goal;
+  const activeMeds=(S.meds||[]).filter(m=>m.active);
+  const inactiveMeds=(S.meds||[]).filter(m=>!m.active);
+
+  const medRow=(m,off)=>`
+    <div class="med-mgr ${off?'off':''}">
+      <div class="mm-info">
+        <div class="mm-nm">${esc(m.name)}${off?' <span style="font-size:10px;color:var(--mu);font-weight:400">（已停用）</span>':''}</div>
+        <div class="mm-times">
+          ${(m.times||[]).map(t=>TIME_MAP[t]?`<span class="mm-tag">${TIME_MAP[t].ico} ${TIME_MAP[t].n}</span>`:'').join('')}
+        </div>
+        ${m.note?`<div class="mm-note">${esc(m.note)}</div>`:''}
+      </div>
+      <button class="mm-btn" data-med-edit="${m.id}">编辑</button>
+      ${off?`<button class="mm-btn" data-med-toggle-active="${m.id}">恢复</button>`
+           :`<button class="mm-btn warn" data-med-toggle-active="${m.id}">停用</button>`}
+    </div>`;
+
+  const medsBody=(activeMeds.length||inactiveMeds.length)?`
+    ${activeMeds.map(m=>medRow(m,false)).join('')}
+    ${inactiveMeds.map(m=>medRow(m,true)).join('')}
+    <div style="margin-top:14px">
+      <button class="btn pri" data-med-add style="width:100%">+ 添加药物</button>
+    </div>
+  `:`
+    <div style="font-size:12.5px;color:var(--mu);line-height:1.6;margin-bottom:12px">
+      添加你正在吃的药，设置服用时间（早/中/晚/睡前），记录页顶部就会出现打勾卡片。
+    </div>
+    <button class="btn pri" data-med-add style="width:100%">+ 添加药物</button>
+  `;
+
+  return `
+    <div class="hd"><h1>我的</h1></div>
+
+    ${!LS.ok?`
+    <div class="card" style="border-color:#fad3b5;background:#fffdfa">
+      <div class="tip"><i class="dt"></i><div><b>当前环境不支持保存</b><br><span style="color:var(--mu);font-size:12px">请把文件保存到本地用真实浏览器打开。</span></div></div>
+    </div>`:(daysSince===null||daysSince>=7?`
+    <div class="card" style="border-color:#fad3b5;background:#fffdfa">
+      <div class="tip"><i class="dt"></i><div><b>建议导出备份</b><br><span style="color:var(--mu);font-size:12px">${daysSince===null?'还没备份过。':'上次备份 '+daysSince+' 天前。'}清浏览器数据会全丢。</span></div></div>
+    </div>`:'')}
+
+    <div class="card c-med">
+      <div class="ch"><span class="t"><span class="ico">💊</span> 我的药</span><span class="s">${activeMeds.length} 种在服</span></div>
+      ${medsBody}
+    </div>
+
+    <div class="card c-med">
+      <div class="ch"><span class="t"><span class="ico">🎯</span> 阶段目标</span></div>
+      ${g?`
+        <div class="rec"><span class="k">类型</span><span class="v">${g.type==='weight'?'体重':'自定义'}</span></div>
+        <div class="rec"><span class="k">起止</span><span class="v">${g.startValue} → ${g.targetValue} kg</span></div>
+        <div class="rec"><span class="k">周期</span><span class="v">${g.startDate} ~ ${g.endDate}</span></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" data-goal-edit>修改</button>
+          <button class="btn dg" data-goal-del>删除</button>
+        </div>
+      `:`
+        <div style="font-size:12.5px;color:var(--mu);line-height:1.6;margin-bottom:12px">
+          设定一个阶段目标（比如 3 个月减 5 kg），记录页会显示进度和节奏。
+        </div>
+        <button class="btn pri" data-goal-add style="width:100%">设定目标</button>
+      `}
+    </div>
+
+    <div class="card c-body">
+      <div class="ch"><span class="t"><span class="ico">🧍</span> 基本</span></div>
+      <div class="rec"><span class="k">性别 / 年龄</span><span class="v">${S.profile.sex} / ${S.profile.age} 岁</span></div>
+      <div class="rec"><span class="k">身高</span><span class="v">${S.profile.height} cm</span></div>
+      <div class="rec"><span class="k">体重参考</span><span class="v bad">${S.profile.weightRef.value} kg</span></div>
+      <div class="rec"><span class="k">BMI</span><span class="v bad">${S.profile.bmi}</span></div>
+    </div>
+
+    <div class="card c-sym">
+      <div class="ch"><span class="t"><span class="ico">🩸</span> 代谢</span></div>
+      <div class="rec"><span class="k">尿酸 2026-07-12</span><span class="v bad">567 umol/L</span></div>
+      <div class="rec"><span class="k">尿酸 2022-05-29</span><span class="v bad">829 umol/L</span></div>
+      <div class="rec"><span class="k">肝脏</span><span class="v bad">轻度脂肪肝</span></div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="t"><span class="ico">🫁</span> 肺 / 泌尿 / 腰椎 / 皮肤</span></div>
+      <div class="rec"><span class="k">左上肺结节</span><span class="v">4×3mm · LU-RADS 2 类</span></div>
+      <div class="rec"><span class="k">前列腺</span><span class="v bad">30×41×36mm · 钙化灶</span></div>
+      <div class="rec"><span class="k">L4/5</span><span class="v bad">突出 4.3mm</span></div>
+      <div class="rec"><span class="k">L5/S1</span><span class="v bad">突出 3.7mm</span></div>
+      <div class="rec"><span class="k">皮肤</span><span class="v bad">腿真菌 / 毛囊炎 / 脂溢性皮炎</span></div>
+    </div>
+
+    <div class="card c-water">
+      <div class="ch"><span class="t"><span class="ico">🎯</span> 我的目标</span></div>
+      <div class="f"><label>每日饮水</label><input class="inp" type="number" inputmode="numeric" data-cfg="waterGoal" value="${S.cfg.waterGoal}"><span class="unit">ml</span></div>
+      <div class="f"><label>目标体重</label><input class="inp" type="number" inputmode="decimal" data-cfg="weightGoal" value="${S.cfg.weightGoal}"><span class="unit">kg</span></div>
+      <div class="f"><label>目标腰围</label><input class="inp" type="number" inputmode="numeric" data-cfg="waistGoal" value="${S.cfg.waistGoal}"><span class="unit">cm</span></div>
+      <div class="f"><label>目标尿酸</label><input class="inp" type="number" inputmode="numeric" data-cfg="uaGoal" value="${S.cfg.uaGoal}"><span class="unit">umol</span></div>
+      <div class="f"><label>目标睡眠</label><input class="inp" type="number" inputmode="decimal" data-cfg="sleepGoal" value="${S.cfg.sleepGoal}"><span class="unit">h</span></div>
+      <div class="f"><label>每日热量</label><input class="inp" type="number" inputmode="numeric" data-cfg="kcalGoal" value="${S.cfg.kcalGoal}"><span class="unit">kcal</span></div>
+    </div>
+
+    <div class="card c-note">
+      <div class="ch"><span class="t"><span class="ico">⏰</span> 凌晨归属</span></div>
+      <div style="font-size:12.5px;color:var(--mu);line-height:1.6;margin-bottom:10px">
+        设为 4 时：凌晨 4 点前记的东西算「前一天」。设为 0 时：过了午夜就算新的一天。
+      </div>
+      <div class="f"><label>几点前算前一天</label>
+        <input class="inp short" type="number" inputmode="numeric" min="0" max="6" data-cfg="dayCutoffHour" value="${S.cfg.dayCutoffHour}"><span class="unit">点</span></div>
+    </div>
+
+    <div class="card c-diet">
+      <div class="ch"><span class="t"><span class="ico">📤</span> 生成报告</span></div>
+      <div style="font-size:12.5px;color:var(--mu);line-height:1.6;margin-bottom:12px">
+        生成一段纯文本，直接复制粘贴给医生或健康助手，不用下载文件。
+      </div>
+      <div class="row" style="margin-bottom:8px">
+        <button class="btn pri" data-report-week style="flex:1">📅 生成周报</button>
+        <button class="btn pri" data-report-month style="flex:1">📆 生成月报</button>
+      </div>
+    </div>
+
+    <div class="card c-note">
+      <div class="ch"><span class="t"><span class="ico">💾</span> 数据备份</span></div>
+      <div style="font-size:12.5px;color:var(--mu);line-height:1.65;margin-bottom:12px">
+        数据只存在这台设备的浏览器里。换手机、清缓存前先备份。
+      </div>
+      <div class="row">
+        <button class="btn" data-export-json>导出备份</button>
+        <button class="btn" data-import>导入备份</button>
+        <button class="btn dg" data-reset>清空</button>
+      </div>
+      <input type="file" id="fileInp" accept=".json" style="display:none">
+    </div>
+
+    <div style="text-align:center;font-size:11px;color:#a9b5b1;padding:14px 0 4px">
+      本工具仅用于自我记录，不构成医疗建议
+    </div>
+  `;
+}
+
+/* ============================================================
+   12. 药物编辑弹窗
+   ============================================================ */
+function openMedModal(medId){
+  medEditId=medId||null;
+  const med=medId?S.meds.find(m=>m.id===medId):null;
+  medEditTemp={
+    name:med?med.name:'',
+    times:med?(med.times||[]).slice():[],
+    note:med?med.note||'':''
+  };
+  renderMedModal();
+  document.getElementById('medModal').classList.add('show');
+}
+function renderMedModal(){
+  document.getElementById('medModalBody').innerHTML=`
+    <div class="medform">
+      <div class="f"><label>药名</label>
+        <input class="inp" id="mfName" placeholder="例如：尿酸药、皮肤药" value="${esc(medEditTemp.name)}"></div>
+      <div class="sub-lbl">服用时间（可多选）</div>
+      <div class="chips">
+        ${TIME_SLOTS.map(t=>`<div class="chip ${medEditTemp.times.includes(t.k)?'on':''}" data-mf-time="${t.k}">${t.ico} ${t.n}</div>`).join('')}
+      </div>
+      <div class="sub-lbl">备注（可选）</div>
+      <div class="f"><input class="inp" id="mfNote" placeholder="例如：饭后、涂腿上、涂头皮" value="${esc(medEditTemp.note)}"></div>
+    </div>
+  `;
+  document.getElementById('medModalTitle').textContent=medEditId?'编辑药物':'添加药物';
+  document.getElementById('medModalFt').innerHTML=`
+    <button class="btn" id="mfCancel">取消</button>
+    <button class="btn pri" id="mfSave">保存</button>
+  `;
+}
+function saveMedModal(){
+  const name=(document.getElementById('mfName')?.value||'').trim();
+  const note=(document.getElementById('mfNote')?.value||'').trim();
+  if(!name){toast('请输入药名');return}
+  if(medEditTemp.times.length===0){toast('至少选一个服用时间');return}
+  if(medEditId){
+    const m=S.meds.find(x=>x.id===medEditId);
+    if(m){m.name=name;m.times=medEditTemp.times.slice();m.note=note}
+  }else{
+    S.meds.push({
+      id:genId(),
+      name,
+      times:medEditTemp.times.slice(),
+      note,
+      active:true,
+      createdAt:todayK()
+    });
+  }
+  save();
+  closeAllModals();
+  render();
+  toast('✓ 已保存');
+}
+
+/* ============================================================
+   13. 营养弹窗
+   ============================================================ */
+function parseNutritionText(text){
+  const r={};
+  if(!text) return r;
+  let m;
+  m=text.match(/蛋白质[^\d]*?(\d+(?:\.\d+)?)(?:\s*[~～\-—到至]\s*(\d+(?:\.\d+)?))?\s*(?:g|克|G)/i);
+  if(m) r.protein=m[2]?(parseFloat(m[1])+parseFloat(m[2]))/2:parseFloat(m[1]);
+  m=text.match(/脂肪[^\d]*?(\d+(?:\.\d+)?)(?:\s*[~～\-—到至]\s*(\d+(?:\.\d+)?))?\s*(?:g|克|G)/i);
+  if(m) r.fat=m[2]?(parseFloat(m[1])+parseFloat(m[2]))/2:parseFloat(m[1]);
+  m=text.match(/碳水(?:化合物)?[^\d]*?(\d+(?:\.\d+)?)(?:\s*[~～\-—到至]\s*(\d+(?:\.\d+)?))?\s*(?:g|克|G)/i);
+  if(m) r.carbs=m[2]?(parseFloat(m[1])+parseFloat(m[2]))/2:parseFloat(m[1]);
+  m=text.match(/(?:总热量|热量)[^\d]*?(\d+(?:\.\d+)?)(?:\s*[~～\-—到至]\s*(\d+(?:\.\d+)?))?\s*(?:大卡|千卡|kcal|卡)/i);
+  if(m) r.kcal=m[2]?(parseFloat(m[1])+parseFloat(m[2]))/2:parseFloat(m[1]);
+  m=text.match(/钠[^\d]*?(\d+(?:\.\d+)?)(?:\s*[~～\-—到至]\s*(\d+(?:\.\d+)?))?\s*(?:mg|毫克|MG)/i);
+  if(m) r.sodium=m[2]?(parseFloat(m[1])+parseFloat(m[2]))/2:parseFloat(m[1]);
+  return r;
+}
+
+function openNutModal(mealKey){
+  nutEditMeal=mealKey;
+  const existing=S.days[curDate]?.nutrition?.[mealKey];
+  nutEditData=existing?{...existing}:{
+    label:'',protein:'',fat:'',carbs:'',kcal:'',sodium:'',raw:''
+  };
+  renderNutModal();
+  document.getElementById('nutModal').classList.add('show');
+}
+
+function renderNutModal(){
+  const mealName=MEALS.find(m=>m.k===nutEditMeal)?.n||'';
+  document.getElementById('nutModalTitle').textContent=`${mealName} · 营养`;
+  document.getElementById('nutModalBody').innerHTML=`
+    <div style="font-size:12.5px;color:var(--mu);line-height:1.6;margin-bottom:10px">
+      把豆包分析结果整段粘贴进来，点「解析」，自动填入下面的字段。也可手动输入。
+    </div>
+    <textarea class="nut-paste" id="nutPaste" placeholder="例：&#10;鸡蛋青菜炒河粉&#10;- 蛋白质：约16~19g&#10;- 脂肪：约22~28g&#10;- 碳水化合物：约72~82g&#10;- 总热量大约 560~630大卡&#10;- 钠：约900~1200mg">${esc(nutEditData.raw||'')}</textarea>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn" id="nutParse" style="flex:1">🔍 解析</button>
+      <button class="btn" id="nutClear" style="flex:0 0 80px;color:var(--red)">清空</button>
+    </div>
+
+    <div class="nut-sec"><span class="ico">📊</span> 解析结果（可编辑）</div>
+
+    <div class="f" style="padding:8px 0">
+      <label>菜名</label>
+      <input class="inp" id="nutLabel" placeholder="例如：鸡蛋青菜炒河粉" value="${esc(nutEditData.label||'')}">
+    </div>
+    <div class="nut-grid">
+      <div class="nut-fld">
+        <label>蛋白质 (g)</label>
+        <input class="inp" type="number" inputmode="decimal" id="nutProtein" value="${nutEditData.protein!=null&&nutEditData.protein!==''?nutEditData.protein:''}" placeholder="—">
+      </div>
+      <div class="nut-fld">
+        <label>脂肪 (g)</label>
+        <input class="inp" type="number" inputmode="decimal" id="nutFat" value="${nutEditData.fat!=null&&nutEditData.fat!==''?nutEditData.fat:''}" placeholder="—">
+      </div>
+      <div class="nut-fld">
+        <label>碳水 (g)</label>
+        <input class="inp" type="number" inputmode="decimal" id="nutCarbs" value="${nutEditData.carbs!=null&&nutEditData.carbs!==''?nutEditData.carbs:''}" placeholder="—">
+      </div>
+      <div class="nut-fld">
+        <label>热量 (kcal)</label>
+        <input class="inp" type="number" inputmode="decimal" id="nutKcal" value="${nutEditData.kcal!=null&&nutEditData.kcal!==''?nutEditData.kcal:''}" placeholder="—">
+      </div>
+      <div class="nut-fld">
+        <label>钠 (mg)</label>
+        <input class="inp" type="number" inputmode="decimal" id="nutSodium" value="${nutEditData.sodium!=null&&nutEditData.sodium!==''?nutEditData.sodium:''}" placeholder="—">
+      </div>
+    </div>
+
+    <div class="nut-hint">
+      解析失败或没有的字段，手动填。热量和三大营养素有一个就够了。
+    </div>
+  `;
+  document.getElementById('nutModalFt').innerHTML=`
+    <button class="btn" id="nutCancel">取消</button>
+    <button class="btn pri" id="nutSave">保存</button>
+  `;
+}
+
+function saveNutModal(){
+  const label=(document.getElementById('nutLabel')?.value||'').trim();
+  const raw=(document.getElementById('nutPaste')?.value||'').trim();
+  const num=id=>{
+    const v=document.getElementById(id)?.value;
+    if(v===''||v==null) return null;
+    const n=parseFloat(v);
+    return isNaN(n)?null:n;
+  };
+  const data={
+    label,
+    protein:num('nutProtein'),
+    fat:num('nutFat'),
+    carbs:num('nutCarbs'),
+    kcal:num('nutKcal'),
+    sodium:num('nutSodium'),
+    raw
+  };
+  const hasAny=['protein','fat','carbs','kcal','sodium'].some(k=>data[k]!=null) || label;
+  if(!hasAny){
+    deleteNutrition(nutEditMeal);
+    return;
+  }
+  const day=getDay(curDate);
+  if(!day.nutrition) day.nutrition={};
+  day.nutrition[nutEditMeal]=data;
+  save();
+  closeAllModals();
+  render({keepScroll:true});
+  toast('✓ 营养已保存');
+}
+
+function deleteNutrition(mealKey){
+  const day=getDay(curDate);
+  if(day.nutrition&&day.nutrition[mealKey]){
+    delete day.nutrition[mealKey];
+    save();
+  }
+  closeAllModals();
+  render({keepScroll:true});
+  toast('已删除营养记录');
+}
+
+/* ============================================================
+   14. 报告生成
+   ============================================================ */
+function medAdherence(days){
+  const activeMeds=(S.meds||[]).filter(m=>m.active);
+  const result={};
+  activeMeds.forEach(m=>{result[m.name]={taken:0,total:0,slots:{}}});
+  days.forEach(k=>{
+    const day=S.days[k];
+    if(!day) return;
+    activeMeds.forEach(m=>{
+      (m.times||[]).forEach(t=>{
+        result[m.name].total++;
+        const key=m.name+'|'+t;
+        if(!result[m.name].slots[key]) result[m.name].slots[key]={taken:0,total:0};
+        result[m.name].slots[key].total++;
+        if(isMedTaken(day,m.id,t)){
+          result[m.name].taken++;
+          result[m.name].slots[key].taken++;
+        }
+      });
+    });
+  });
+  return result;
+}
+
+function genWeekly(){
+  const today=parseD(todayK());
+  const start=new Date(today); start.setDate(start.getDate()-6);
+  const days=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(start); d.setDate(d.getDate()+i);
+    days.push(fmt(d));
+  }
+  const lines=[];
+  lines.push(`【健康周报】${days[0]} ~ ${days[6]}`);
+  lines.push('');
+  lines.push('■ 每日记录');
+  days.forEach(k=>{
+    const day=S.days[k];
+    if(!day){lines.push(`${k.slice(5)}  —— 未记录`);return}
+    const w=waterTotal(day);
+    const st=dayStats(day);
+    const nut=dayNutrition(day);
+    const meals=['breakfast','lunch','tea','dinner'].map(m=>(day.meals?.[m]||[]).length).join('/');
+    const back=day.symptoms?.back;
+    const joint=day.symptoms?.joint;
+    const urin=day.symptoms?.urinary;
+    const skinWorse=Object.values(day.skin||{}).filter(v=>v==='worse').length;
+    const parts=[
+      `水${w}`,
+      day.weight!=null?`体重${day.weight}`:'',
+      `餐${meals}`,
+      nut.has?`${Math.round(nut.kcal)}kcal`:'',
+      nut.has&&nut.sodium?`钠${Math.round(nut.sodium)}`:'',
+      st.hz?`高嘌呤${st.hz}`:'',
+      st.wr?`中风险${st.wr}`:'',
+      back?.score>0?`腰${back.score}${back.nature||''}`:'',
+      joint?.score>0?`关节${joint.score}`:'',
+      urin?.score>0?`排尿${urin.score}`:'',
+      skinWorse>0?`皮肤加重${skinWorse}`:'',
+      day.sedentary?`久坐${day.sedentary}`:'',
+      (day.water?.alcohol||0)>0?'饮酒':'',
+      (day.water?.sugary||0)>0?'含糖饮':''
+    ].filter(Boolean);
+    lines.push(`${k.slice(5)}  ${parts.join('  ')}`);
+  });
+  lines.push('');
+
+  lines.push('■ 本周汇总');
+  let waterOk=0,alcCount=0,hzTotal=0,sleepSum=0,sleepN=0,backDays=0,backSum=0,jointDays=0,skinWorseDays=0;
+  let wStart=null,wEnd=null;
+  let kcalSum=0,kcalN=0,sodiumSum=0,sodiumN=0;
+  days.forEach(k=>{
+    const day=S.days[k];
+    if(!day) return;
+    if(waterTotal(day)>=S.cfg.waterGoal) waterOk++;
+    if((day.water?.alcohol||0)>0) alcCount++;
+    hzTotal+=dayStats(day).hz;
+    if(day.sleep?.hours){sleepSum+=day.sleep.hours;sleepN++}
+    if((day.symptoms?.back?.score||0)>0){backDays++;backSum+=day.symptoms.back.score}
+    if((day.symptoms?.joint?.score||0)>0) jointDays++;
+    if(Object.values(day.skin||{}).includes('worse')) skinWorseDays++;
+    if(day.weight!=null){if(wStart===null) wStart=day.weight; wEnd=day.weight}
+    const nut=dayNutrition(day);
+    if(nut.has&&nut.kcal){kcalSum+=nut.kcal;kcalN++}
+    if(nut.has&&nut.sodium){sodiumSum+=nut.sodium;sodiumN++}
+  });
+  lines.push(`- 饮水达标：${waterOk}/7 天（目标 ${S.cfg.waterGoal}ml）`);
+  if(wStart!=null) lines.push(`- 体重：${wStart} → ${wEnd} kg（${wEnd-wStart>=0?'+':''}${(wEnd-wStart).toFixed(1)}）`);
+  lines.push(`- 高嘌呤：共 ${hzTotal} 次`);
+  lines.push(`- 饮酒：${alcCount} 天`);
+  if(backDays>0) lines.push(`- 腰痛：${backDays}/7 天，平均 ${(backSum/backDays).toFixed(1)} 分`);
+  if(jointDays>0) lines.push(`- 关节痛：${jointDays} 天`);
+  if(skinWorseDays>0) lines.push(`- 皮肤加重：${skinWorseDays} 天`);
+  if(sleepN>0) lines.push(`- 睡眠：平均 ${(sleepSum/sleepN).toFixed(1)}h`);
+  if(kcalN>0) lines.push(`- 热量：平均 ${Math.round(kcalSum/kcalN)} kcal/天（${kcalN} 天有数据）`);
+  if(sodiumN>0) lines.push(`- 钠：平均 ${Math.round(sodiumSum/sodiumN)} mg/天（${sodiumN} 天有数据）`);
+
+  const adh=medAdherence(days);
+  const medNames=Object.keys(adh);
+  if(medNames.length>0){
+    lines.push('');
+    lines.push('■ 用药依从性');
+    medNames.forEach(n=>{
+      const a=adh[n];
+      if(a.total===0) return;
+      const pct=Math.round(a.taken/a.total*100);
+      const slotStr=Object.keys(a.slots).map(k=>{
+        const slot=k.split('|')[1];
+        const s=a.slots[k];
+        return `${TIME_MAP[slot]?.n||slot} ${s.taken}/${s.total}`;
+      }).join('，');
+      lines.push(`- ${n}：${a.taken}/${a.total} 次（${pct}%）${slotStr?' · '+slotStr:''}`);
+    });
+  }
+  lines.push('');
+
+  const advice=[];
+  const sed4=days.map(k=>S.days[k]).filter(x=>x?.sedentary==='>4小时').length;
+  if(backDays>=3&&sed4>=3) advice.push(`腰痛 ${backDays} 天，其中 ${sed4} 天久坐>4h，高度相关。下周试试每小时站起来 2 分钟。`);
+  else if(backDays>=3) advice.push(`腰痛 ${backDays} 天。留意诱发场景（久坐/弯腰/起床），下次发作时记下来。`);
+  if(hzTotal>=4) advice.push(`高嘌呤 ${hzTotal} 次偏多。下周把加工肉、内脏、浓汤压到 2 次以内。`);
+  if(waterOk<=3) advice.push(`饮水达标只有 ${waterOk} 天。尿酸 567 的人，2500ml 是底线。`);
+  if(alcCount>=2) advice.push(`饮酒 ${alcCount} 次。酒精会直接让尿酸飙升。`);
+  if(skinWorseDays>=3) advice.push(`皮肤加重 ${skinWorseDays} 天。留意是否和熬夜、喝酒、吃辣相关。`);
+  if(kcalN>0&&kcalSum/kcalN>S.cfg.kcalGoal) advice.push(`日均 ${Math.round(kcalSum/kcalN)} kcal，超过目标 ${S.cfg.kcalGoal}。减重先减主食和油。`);
+  if(sodiumN>0&&sodiumSum/sodiumN>3000) advice.push(`日均钠 ${Math.round(sodiumSum/sodiumN)} mg，明显超标。少放酱油、少吃加工肉。`);
+  if(medNames.length>0){
+    const lowAdh=medNames.filter(n=>adh[n].total>0&&adh[n].taken/adh[n].total<0.7);
+    if(lowAdh.length>0) advice.push(`用药依从性偏低：${lowAdh.join('、')}。把药放到固定位置，或设手机闹钟。`);
+  }
+  if(!advice.length) advice.push('这周整体还可以，继续保持。');
+  lines.push('■ 健康建议');
+  advice.forEach(a=>lines.push('· '+a));
+  lines.push('');
+  lines.push('■ 我想问的');
+  lines.push('（在这里写下你想问的问题）');
+  return lines.join('\n');
+}
+
+function genMonthly(){
+  const now=parseD(todayK());
+  const y=now.getFullYear(),m=now.getMonth();
+  const totalDays=new Date(y,m+1,0).getDate();
+  const days=[];
+  for(let d=1;d<=totalDays;d++) days.push(`${y}-${pad(m+1)}-${pad(d)}`);
+  const lines=[];
+  lines.push(`【健康月报】${y}年${m+1}月`);
+  lines.push('');
+
+  lines.push('■ 趋势');
+  let wStart=null,wEnd=null,waistStart=null,waistEnd=null;
+  days.forEach(k=>{
+    const day=S.days[k]; if(!day) return;
+    if(day.weight!=null){if(wStart===null) wStart=day.weight; wEnd=day.weight}
+    if(day.waist!=null){if(waistStart===null) waistStart=day.waist; waistEnd=day.waist}
+  });
+  if(wStart!=null) lines.push(`- 体重：${wStart} → ${wEnd} kg（${wEnd-wStart>=0?'+':''}${(wEnd-wStart).toFixed(1)}）`);
+  if(waistStart!=null) lines.push(`- 腰围：${waistStart} → ${waistEnd} cm（${waistEnd-waistStart>=0?'+':''}${(waistEnd-waistStart).toFixed(1)}）`);
+  const lastUA=[...S.uric].sort((a,b)=>a.date.localeCompare(b.date)).pop();
+  if(lastUA) lines.push(`- 尿酸：${lastUA.value} umol/L（${lastUA.date}，目标 <${S.cfg.uaGoal}）`);
+
+  lines.push('');
+  lines.push('■ 行为统计');
+  let waterOk=0,hzTotal=0,alcDays=0,vegDays=0,exDays=0,backDays=0,backSum=0,sleepSum=0,sleepN=0,recordedDays=0,sugaryDays=0,skinWorseDays=0;
+  let kcalSum=0,kcalN=0,sodiumSum=0,sodiumN=0;
+  days.forEach(k=>{
+    const day=S.days[k]; if(!day) return;
+    recordedDays++;
+    if(waterTotal(day)>=S.cfg.waterGoal) waterOk++;
+    hzTotal+=dayStats(day).hz;
+    if((day.water?.alcohol||0)>0) alcDays++;
+    if((day.water?.sugary||0)>0) sugaryDays++;
+    const hasVeg=MEALS.some(ml=>(day.meals?.[ml.k]||[]).some(f=>f.c==='veg'||f.n.includes('蔬菜')||f.n.includes('瓜果')||f.n.includes('菌菇')));
+    if(hasVeg) vegDays++;
+    if((day.exercise||[]).length) exDays++;
+    if((day.symptoms?.back?.score||0)>0){backDays++;backSum+=day.symptoms.back.score}
+    if(day.sleep?.hours){sleepSum+=day.sleep.hours;sleepN++}
+    if(Object.values(day.skin||{}).includes('worse')) skinWorseDays++;
+    const nut=dayNutrition(day);
+    if(nut.has&&nut.kcal){kcalSum+=nut.kcal;kcalN++}
+    if(nut.has&&nut.sodium){sodiumSum+=nut.sodium;sodiumN++}
+  });
+  lines.push(`- 记录天数：${recordedDays}/${totalDays}`);
+  lines.push(`- 饮水达标：${waterOk}/${totalDays} 天`);
+  lines.push(`- 有吃蔬菜：${vegDays}/${totalDays} 天`);
+  lines.push(`- 高嘌呤：共 ${hzTotal} 次`);
+  lines.push(`- 饮酒：${alcDays} 天`);
+  lines.push(`- 含糖饮料：${sugaryDays} 天`);
+  lines.push(`- 运动：${exDays} 天`);
+  if(backDays>0) lines.push(`- 腰痛：${backDays} 天，平均 ${(backSum/backDays).toFixed(1)} 分`);
+  if(skinWorseDays>0) lines.push(`- 皮肤加重：${skinWorseDays} 天`);
+  if(sleepN>0) lines.push(`- 睡眠：平均 ${(sleepSum/sleepN).toFixed(1)}h`);
+  if(kcalN>0) lines.push(`- 热量：平均 ${Math.round(kcalSum/kcalN)} kcal/天（${kcalN} 天有数据）`);
+  if(sodiumN>0) lines.push(`- 钠：平均 ${Math.round(sodiumSum/sodiumN)} mg/天（${sodiumN} 天有数据）`);
+
+  const adh=medAdherence(days);
+  const medNames=Object.keys(adh);
+  if(medNames.length>0){
+    lines.push('');
+    lines.push('■ 用药依从性');
+    medNames.forEach(n=>{
+      const a=adh[n];
+      if(a.total===0) return;
+      const pct=Math.round(a.taken/a.total*100);
+      lines.push(`- ${n}：${a.taken}/${a.total} 次（${pct}%）`);
+    });
+  }
+
+  if(S.goal&&S.goal.type==='weight'){
+    lines.push('');
+    lines.push('■ 阶段目标进度');
+    const g=S.goal;
+    const curW=wEnd||g.startValue;
+    const total=g.startValue-g.targetValue;
+    const done=g.startValue-curW;
+    const pct=total>0?Math.max(0,Math.min(100,Math.round(done/total*100))):0;
+    const remain=diffDays(g.endDate,todayK());
+    lines.push(`- ${g.startValue} → ${g.targetValue} kg，已减 ${done.toFixed(1)} kg（${pct}%）`);
+    lines.push(`- 目标日期 ${g.endDate}，剩 ${remain>0?remain+' 天':'已到期'}`);
+  }
+
+  lines.push('');
+  lines.push('■ 复查');
+  const today=todayK();
+  const thisMonth=S.checkups.filter(it=>{
+    const nd=fmt(nextDateOf(it));
+    return nd>=`${y}-${pad(m+1)}-01`&&nd<=`${y}-${pad(m+1)}-${pad(totalDays)}`;
+  });
+  const overdue=S.checkups.filter(it=>diffDays(fmt(nextDateOf(it)),today)<0);
+  if(overdue.length) lines.push(`- ⚠️ 已逾期：${overdue.map(i=>i.name).join('、')}`);
+  if(thisMonth.length) lines.push(`- 本月到期：${thisMonth.map(i=>i.name+'（'+i.dept+'）').join('、')}`);
+  if(!overdue.length&&!thisMonth.length) lines.push('- 本月无到期复查');
+
+  lines.push('');
+  lines.push('■ 健康建议');
+  const advice=[];
+  if(backDays>=10) advice.push(`腰痛 ${backDays} 天，接近每天。与久坐的关系需认真对待，建议去骨科/康复科评估。`);
+  if(hzTotal>=12) advice.push(`高嘌呤 ${hzTotal} 次偏多，主要是加工肉和内脏/浓汤。下个月压到 8 次以内。`);
+  if(waterOk<totalDays*0.6) advice.push(`饮水达标只有 ${waterOk}/${totalDays} 天。这是尿酸控制的基础，先做到。`);
+  if(vegDays<totalDays*0.5) advice.push(`有蔬菜的天数只有 ${vegDays} 天。蔬菜帮肾脏排尿酸，每天至少一份。`);
+  if(alcDays>=4) advice.push(`饮酒 ${alcDays} 天。酒精直接影响尿酸，建议戒断。`);
+  if(sugaryDays>=6) advice.push(`含糖饮料 ${sugaryDays} 天。果糖升尿酸比嘌呤还狠。`);
+  if(skinWorseDays>=8) advice.push(`皮肤加重 ${skinWorseDays} 天。反复的皮肤问题建议查糖化血红蛋白，排查胰岛素抵抗。`);
+  if(kcalN>0&&kcalSum/kcalN>S.cfg.kcalGoal) advice.push(`日均 ${Math.round(kcalSum/kcalN)} kcal，超过目标。减重先减主食和炒菜油。`);
+  if(sodiumN>0&&sodiumSum/sodiumN>3000) advice.push(`日均钠 ${Math.round(sodiumSum/sodiumN)} mg，明显超标。少放酱油、少吃加工肉。`);
+  if(medNames.length>0){
+    const lowAdh=medNames.filter(n=>adh[n].total>0&&adh[n].taken/adh[n].total<0.7);
+    if(lowAdh.length>0) advice.push(`用药依从性偏低：${lowAdh.join('、')}。把药放到固定位置，设手机闹钟。`);
+  }
+  if(!advice.length) advice.push('这个月整体还可以。继续保持，注意复查。');
+  advice.forEach(a=>lines.push('· '+a));
+  lines.push('');
+  lines.push('■ 我想问的');
+  lines.push('（在这里写下你想问的问题）');
+  return lines.join('\n');
+}
+
+/* ============================================================
+   15. 图表
+   ============================================================ */
+function prep(cv){
+  const dpr=window.devicePixelRatio||1;
+  const r=cv.getBoundingClientRect();
+  const W=r.width||300,H=r.height||150;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  return{ctx,W,H};
+}
+function empty2(ctx,W,H,msg){
+  ctx.fillStyle='#b6c2be'; ctx.font='13px -apple-system,"PingFang SC",sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(msg,W/2,H/2);
+}
+function lineChart(cv,pts,o){
+  const{ctx,W,H}=prep(cv);
+  if(!pts.length){empty2(ctx,W,H,'暂无数据');return}
+  const pL=42,pR=14,pT=14,pB=24,cw=W-pL-pR,ch=H-pT-pB;
+  let vals=pts.map(p=>p.value);
+  let mn=Math.min(...vals),mx=Math.max(...vals);
+  if(o.goal!=null){mn=Math.min(mn,o.goal);mx=Math.max(mx,o.goal)}
+  if(mx-mn<2){const m=(mx+mn)/2;mn=m-1.5;mx=m+1.5}
+  const pad=(mx-mn)*0.15;mn-=pad;mx+=pad;
+  const X=i=>pts.length===1?pL+cw/2:pL+cw*i/(pts.length-1);
+  const Y=v=>pT+ch*(1-(v-mn)/(mx-mn));
+  ctx.strokeStyle='#eef2f0';ctx.lineWidth=1;
+  ctx.fillStyle='#9aa8a3';ctx.font='10px -apple-system,sans-serif';
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let i=0;i<=3;i++){
+    const y=pT+ch*i/3;
+    ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+cw,y);ctx.stroke();
+    ctx.fillText((mx-(mx-mn)*i/3).toFixed(1),pL-7,y);
+  }
+  if(o.goal!=null&&o.goal>=mn&&o.goal<=mx){
+    ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='#f0b27a';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(pL,Y(o.goal));ctx.lineTo(pL+cw,Y(o.goal));ctx.stroke();ctx.restore();
+  }
+  const g=ctx.createLinearGradient(0,pT,0,pT+ch);
+  g.addColorStop(0,o.fill1||'rgba(13,148,136,.18)');
+  g.addColorStop(1,o.fill2||'rgba(13,148,136,0)');
+  ctx.beginPath();ctx.moveTo(X(0),pT+ch);
+  pts.forEach((p,i)=>ctx.lineTo(X(i),Y(p.value)));
+  ctx.lineTo(X(pts.length-1),pT+ch);ctx.closePath();
+  ctx.fillStyle=g;ctx.fill();
+  ctx.strokeStyle=o.color||'#0d9488';ctx.lineWidth=2.2;
+  ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.beginPath();
+  pts.forEach((p,i)=>i?ctx.lineTo(X(i),Y(p.value)):ctx.moveTo(X(i),Y(p.value)));
+  ctx.stroke();
+  pts.forEach((p,i)=>{
+    ctx.beginPath();ctx.arc(X(i),Y(p.value),pts.length>20?2:3.4,0,7);
+    ctx.fillStyle=o.color||'#0d9488';ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.8;ctx.stroke();
+  });
+  if(pts.length>1){
+    ctx.fillStyle='#9aa8a3';ctx.font='10px -apple-system,sans-serif';ctx.textBaseline='top';
+    ctx.textAlign='left';ctx.fillText(o.xLabel?o.xLabel(pts[0]):'',pL,pT+ch+7);
+    ctx.textAlign='right';ctx.fillText(o.xLabel?o.xLabel(pts[pts.length-1]):'',pL+cw,pT+ch+7);
+  }
+}
+function barChart(cv,vals,o){
+  const{ctx,W,H}=prep(cv);
+  if(!vals.length){empty2(ctx,W,H,'暂无数据');return}
+  const pL=42,pR=12,pT=12,pB=20,cw=W-pL-pR,ch=H-pT-pB;
+  const mx=Math.max(o.goal||0,...vals)*1.12||100;
+  const gap=3,bw=(cw-gap*(vals.length-1))/vals.length;
+  ctx.strokeStyle='#eef2f0';ctx.lineWidth=1;
+  ctx.fillStyle='#9aa8a3';ctx.font='10px -apple-system,sans-serif';
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let i=0;i<=2;i++){
+    const y=pT+ch*i/2;
+    ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+cw,y);ctx.stroke();
+    ctx.fillText(Math.round(mx-mx*i/2),pL-7,y);
+  }
+  if(o.goal){
+    const gy=pT+ch*(1-o.goal/mx);
+    ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='#f0b27a';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(pL+cw,gy);ctx.stroke();ctx.restore();
+  }
+  vals.forEach((v,i)=>{
+    const h=v>0?Math.max(2,ch*(v/mx)):0;
+    const x=pL+i*(bw+gap),y=pT+ch-h;
+    if(h>0){
+      const done=v>=(o.goal||Infinity);
+      const g=ctx.createLinearGradient(0,y,0,y+h);
+      if(done){g.addColorStop(0,'#5eead4');g.addColorStop(1,'#0d9488')}
+      else{g.addColorStop(0,'#b8d4cf');g.addColorStop(1,'#87aaa2')}
+      ctx.fillStyle=g;
+      const r=Math.min(3.5,bw/2);
+      ctx.beginPath();
+      ctx.moveTo(x,y+h);ctx.lineTo(x,y+r);
+      ctx.quadraticCurveTo(x,y,x+r,y);ctx.lineTo(x+bw-r,y);
+      ctx.quadraticCurveTo(x+bw,y,x+bw,y+r);ctx.lineTo(x+bw,y+h);
+      ctx.closePath();ctx.fill();
+    }
+  });
+}
+
+/* ============================================================
+   16. 渲染调度
+   ============================================================ */
+function render(opts){
+  opts=opts||{};
+  const savedY=opts.keepScroll?window.scrollY:0;
+  try{
+    if(tab==='log') viewEl.innerHTML=logView();
+    else if(tab==='cal') viewEl.innerHTML=calView();
+    else if(tab==='trend') viewEl.innerHTML=trendView();
+    else if(tab==='check') viewEl.innerHTML=checkView();
+    else viewEl.innerHTML=meView();
+  }catch(e){
+    viewEl.innerHTML=`<div class="card" style="margin:20px 0"><div class="ch"><span class="t">渲染出错</span></div><div class="tip"><i class="dt"></i><div style="word-break:break-all;font-size:12px">${esc(e.message)}<br><br>${esc(e.stack||'')}</div></div></div>`;
+    return;
+  }
+  document.querySelectorAll('.ni').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
+
+  if(tab==='trend'){
+    requestAnimationFrame(()=>{
+      try{
+        const cW=document.getElementById('cW');
+        if(cW){
+          const pts=Object.keys(S.days).filter(k=>typeof S.days[k].weight==='number'&&S.days[k].weight>0).sort().map(k=>({label:k,value:S.days[k].weight}));
+          lineChart(cW,pts,{color:'#0d9488',goal:S.cfg.weightGoal,xLabel:p=>humanD(p.label)});
+        }
+        const cWaist=document.getElementById('cWaist');
+        if(cWaist){
+          const pts=Object.keys(S.days).filter(k=>typeof S.days[k].waist==='number'&&S.days[k].waist>0).sort().map(k=>({label:k,value:S.days[k].waist}));
+          lineChart(cWaist,pts,{color:'#ea580c',goal:S.cfg.waistGoal,fill1:'rgba(234,88,12,.14)',fill2:'rgba(234,88,12,0)',xLabel:p=>humanD(p.label)});
+        }
+        const cWa=document.getElementById('cWa');
+        if(cWa){
+          const vals=[];
+          for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=fmt(d);vals.push(waterTotal(S.days[k]||blankDay()))}
+          barChart(cWa,vals,{goal:S.cfg.waterGoal});
+        }
+        const cS=document.getElementById('cSleep');
+        if(cS){
+          const vals=[];
+          for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=fmt(d);vals.push(S.days[k]?.sleep?.hours||0)}
+          barChart(cS,vals,{goal:S.cfg.sleepGoal});
+        }
+        const cU=document.getElementById('cU');
+        if(cU){
+          const pts=[...S.uric].sort((a,b)=>a.date.localeCompare(b.date)).map(x=>({label:x.date,value:x.value}));
+          lineChart(cU,pts,{color:'#dc2626',goal:S.cfg.uaGoal,fill1:'rgba(220,38,38,.16)',fill2:'rgba(220,38,38,0)',xLabel:p=>humanD(p.label)});
+        }
+        const cK=document.getElementById('cKcal');
+        if(cK){
+          const vals=[];
+          for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=fmt(d);const n=dayNutrition(S.days[k]||blankDay());vals.push(n.has&&n.kcal?Math.round(n.kcal):0)}
+          barChart(cK,vals,{goal:S.cfg.kcalGoal});
+        }
+      }catch(e){}
+    });
+  }
+  if(opts.keepScroll){
+    window.scrollTo(0,savedY);
+  }else{
+    window.scrollTo({top:0,behavior:'auto'});
+  }
+}
+
+/* ============================================================
+   17. 交互
+   ============================================================ */
+const view=document.getElementById('view');
+
+view.addEventListener('click',e=>{
+  const day=getDay(curDate);
+
+  // 折叠 —— 修复版：只切换 class，不删 data-toggle
+  const tg=e.target.closest('[data-toggle]');
+  if(tg){
+    const id=tg.dataset.toggle;
+    S.collapsed[id]=!S.collapsed[id];
+    save();
+    const c=tg.closest('[data-card]');
+    if(c) c.classList.toggle('collapsed');
+    return;
+  }
+
+  const dn=e.target.closest('[data-day]');
+  if(dn){
+    flushInput();
+    const d=parseD(curDate);d.setDate(d.getDate()+Number(dn.dataset.day));
+    if(fmt(d)>todayK())return;
+    curDate=fmt(d);picker.meal=null;render();return;
+  }
+
+  if(e.target.closest('[data-pickdate]')||e.target.closest('[data-goto-cal]')){
+    flushInput();
+    tab='cal';
+    if(!calMonth){const d=parseD(curDate);calMonth={y:d.getFullYear(),m:d.getMonth()}}
+    render();return;
+  }
+
+  const mj=e.target.closest('[data-jump]');
+  if(mj){
+    const k=mj.dataset.jump;
+    if(k>todayK())return;
+    flushInput();
+    curDate=k;tab='log';picker.meal=null;render();return;
+  }
+
+  const cm=e.target.closest('[data-cal]');
+  if(cm){
+    if(!calMonth){const d=parseD(curDate);calMonth={y:d.getFullYear(),m:d.getMonth()}}
+    let m=calMonth.m+Number(cm.dataset.cal),y=calMonth.y;
+    if(m<0){m=11;y--}if(m>11){m=0;y++}
+    calMonth={y,m};render();return;
+  }
+
+  const mtk=e.target.closest('[data-med-take]');
+  if(mtk){
+    const [id,slot]=mtk.dataset.medTake.split(':');
+    if(!day.medLog[id]) day.medLog[id]={};
+    day.medLog[id][slot]=!day.medLog[id][slot];
+    save();render({keepScroll:true});
+    toast(day.medLog[id][slot]?'✓ 已记录':'已取消');
+    return;
+  }
+
+  const wb=e.target.closest('[data-water]');
+  if(wb){
+    const [t,dStr]=wb.dataset.water.split(':');
+    const delta=Number(dStr);
+    day.water[t]=Math.max(0,(day.water[t]||0)+delta);
+    save();render({keepScroll:true});toast('✓ 已记录');
+    return;
+  }
+
+  const ob=e.target.closest('[data-open]');
+  if(ob){
+    flushInput();
+    const m=ob.dataset.open;
+    picker.meal=(picker.meal===m)?null:m;
+    render({keepScroll:true});return;
+  }
+  const cb=e.target.closest('[data-cat]');
+  if(cb){picker.cat=cb.dataset.cat;render({keepScroll:true});return}
+  const ab=e.target.closest('[data-add]');
+  if(ab&&picker.meal){
+    const f=FOODS.find(x=>x.n===ab.dataset.add);
+    if(f){
+      day.meals[picker.meal].push({n:f.n,lv:f.lv,kcal:f.kcal});
+      pushRecent(f.n);
+      save();render({keepScroll:true});toast('✓ 已记录 '+f.n);
+    }
+    return;
+  }
+  const fb=e.target.closest('[data-free-add]');
+  if(fb){
+    const inp=document.getElementById('freeInp');
+    const name=(inp?.value||'').trim();
+    if(name){
+      day.meals[fb.dataset.freeAdd].push({n:name,lv:0,kcal:0});
+      pushRecent(name);
+      save();render({keepScroll:true});toast('✓ 已记录 '+name);
+    }else inp?.focus();
+    return;
+  }
+  const db=e.target.closest('[data-del-food]');
+  if(db){
+    const[mk,fi]=db.dataset.delFood.split(':');
+    const removed=day.meals[mk].splice(Number(fi),1)[0];
+    save();render({keepScroll:true});toast('已删除 '+(removed?.n||''));
+    return;
+  }
+
+  const no=e.target.closest('[data-nut-open]');
+  if(no){flushInput();openNutModal(no.dataset.nutOpen);return}
+  const nd=e.target.closest('[data-nut-del]');
+  if(nd){deleteNutrition(nd.dataset.nutDel);return}
+
+  const bs=e.target.closest('[data-back-score]');
+  if(bs){
+    const v=Number(bs.dataset.backScore);
+    day.symptoms.back.score=v;
+    if(v===0){day.symptoms.back.nature=null;day.symptoms.back.triggers=[];day.symptoms.back.reliefs=[];day.symptoms.back.duration=null;}
+    save();render({keepScroll:true});toast('✓ 已记录');
+    return;
+  }
+  const bn=e.target.closest('[data-back-nature]');
+  if(bn){const v=bn.dataset.backNature;day.symptoms.back.nature=day.symptoms.back.nature===v?null:v;save();render({keepScroll:true});toast('✓ 已记录');return}
+  const bt=e.target.closest('[data-back-trigger]');
+  if(bt){const v=bt.dataset.backTrigger;const arr=day.symptoms.back.triggers;const i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);save();render({keepScroll:true});return}
+  const br=e.target.closest('[data-back-relief]');
+  if(br){const v=br.dataset.backRelief;const arr=day.symptoms.back.reliefs;const i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);save();render({keepScroll:true});return}
+  const bd=e.target.closest('[data-back-duration]');
+  if(bd){const v=bd.dataset.backDuration;day.symptoms.back.duration=day.symptoms.back.duration===v?null:v;save();render({keepScroll:true});toast('✓ 已记录');return}
+  const sd=e.target.closest('[data-sed]');
+  if(sd){const v=sd.dataset.sed;day.sedentary=day.sedentary===v?null:v;save();render({keepScroll:true});toast('✓ 已记录');return}
+
+  const js=e.target.closest('[data-joint-score]');
+  if(js){const v=Number(js.dataset.jointScore);day.symptoms.joint.score=v;if(v===0)day.symptoms.joint.sites=[];save();render({keepScroll:true});toast('✓ 已记录');return}
+  const jsite=e.target.closest('[data-joint-site]');
+  if(jsite){const v=jsite.dataset.jointSite;const arr=day.symptoms.joint.sites;const i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);save();render({keepScroll:true});return}
+
+  const us=e.target.closest('[data-urinary-score]');
+  if(us){const v=Number(us.dataset.urinaryScore);day.symptoms.urinary.score=v;if(v===0)day.symptoms.urinary.sites=[];save();render({keepScroll:true});toast('✓ 已记录');return}
+  const usite=e.target.closest('[data-urinary-site]');
+  if(usite){const v=usite.dataset.urinarySite;const arr=day.symptoms.urinary.sites;const i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);save();render({keepScroll:true});return}
+
+  const sk=e.target.closest('[data-skin]');
+  if(sk){
+    const [k,v]=sk.dataset.skin.split(':');
+    if(day.skin[k]===v) day.skin[k]=null;
+    else day.skin[k]=v;
+    save();render({keepScroll:true});toast('✓ 已记录');
+    return;
+  }
+
+  const sq=e.target.closest('[data-sleep-q]');
+  if(sq){
+    const v=Number(sq.dataset.sleepQ);
+    if(!day.sleep) day.sleep={hours:null,quality:null,nocturia:null};
+    day.sleep.quality=day.sleep.quality===v?null:v;
+    save();render({keepScroll:true});toast('✓ 已记录');
+    return;
+  }
+
+  const btype=e.target.closest('[data-bowel-t]');
+  if(btype){const v=Number(btype.dataset.bowelT);day.bowel.type=day.bowel.type===v?null:v;save();render({keepScroll:true});toast('✓ 已记录');return}
+
+  const vf=e.target.closest('[data-void-flag]');
+  if(vf){const k=vf.dataset.voidFlag;day.voiding[k]=!day.voiding[k];save();render({keepScroll:true});toast('✓ 已记录');return}
+
+  const ae=e.target.closest('[data-add-ex]');
+  if(ae){
+    const type=document.getElementById('exType')?.value||'其他';
+    const dur=parseFloat(document.getElementById('exDur')?.value);
+    const inten=document.getElementById('exInt')?.value||'mid';
+    const back=parseFloat(document.getElementById('exBack')?.value);
+    if(!isNaN(dur)&&dur>0){
+      day.exercise.push({type,duration:dur,intensity:inten,backReaction:(!isNaN(back)&&back>=0&&back<=5)?back:null});
+      save();render({keepScroll:true});toast('✓ 已记录运动');
+    }
+    return;
+  }
+  const de=e.target.closest('[data-del-ex]');
+  if(de){day.exercise.splice(Number(de.dataset.delEx),1);save();render({keepScroll:true});toast('已删除');return}
+
+  const dn2=e.target.closest('[data-done]');
+  if(dn2){
+    const it=S.checkups.find(x=>x.id===dn2.dataset.done);
+    if(it){it.last=todayK();save();toast('✓ 已更新');render({keepScroll:true})}
+    return;
+  }
+
+  if(e.target.closest('[data-med-add]')){openMedModal(null);return}
+  const meBtn=e.target.closest('[data-med-edit]');
+  if(meBtn){openMedModal(meBtn.dataset.medEdit);return}
+  const mtBtn=e.target.closest('[data-med-toggle-active]');
+  if(mtBtn){
+    const m=S.meds.find(x=>x.id===mtBtn.dataset.medToggleActive);
+    if(m){m.active=!m.active;save();render({keepScroll:true});toast(m.active?'已恢复':'已停用')}
+    return;
+  }
+
+  if(e.target.closest('[data-goal-add]')){
+    flushInput();
+    S.goal={type:'weight',startValue:S.profile.weightRef.value,targetValue:S.profile.weightRef.value-5,startDate:todayK(),endDate:fmt((()=>{const d=parseD(todayK());d.setMonth(d.getMonth()+3);return d})())};
+    save();render({keepScroll:true});toast('✓ 已设定');return;
+  }
+  if(e.target.closest('[data-goal-edit]')){
+    const g=S.goal;
+    const s=prompt('起始体重 kg',g.startValue);if(s===null)return;
+    const t=prompt('目标体重 kg',g.targetValue);if(t===null)return;
+    const e2=prompt('目标日期 (YYYY-MM-DD)',g.endDate);if(e2===null)return;
+    const sv=parseFloat(s),tv=parseFloat(t);
+    if(!isNaN(sv)&&!isNaN(tv)&&/^\d{4}-\d{2}-\d{2}$/.test(e2)){
+      S.goal={...g,startValue:sv,targetValue:tv,endDate:e2};save();render({keepScroll:true});toast('✓ 已更新');
+    }else toast('输入有误');
+    return;
+  }
+  if(e.target.closest('[data-goal-del]')){
+    if(confirm('删除阶段目标？')){S.goal=null;save();render({keepScroll:true});toast('已删除')}
+    return;
+  }
+
+  if(e.target.closest('[data-report-week]')){flushInput();openReport('健康周报',genWeekly());return}
+  if(e.target.closest('[data-report-month]')){flushInput();openReport('健康月报',genMonthly());return}
+
+  if(e.target.closest('[data-export-json]')){
+    flushInput();
+    const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+    dl(blob,'健康日志备份_'+todayK()+'.json');
+    lsSet('healthlog_last_backup',todayK());
+    toast('✓ 备份已导出');
+    render({keepScroll:true});
+    return;
+  }
+  if(e.target.closest('[data-import]')){document.getElementById('fileInp')?.click();return}
+  if(e.target.closest('[data-reset]')){
+    if(confirm('确定清空全部记录？不可恢复。\n建议先导出备份。')){
+      lsDel(KEY);lsDel('healthlog_recent');lsDel('healthlog_last_backup');
+      S=defState();recentFoods=[];calMonth=null;
+      curDate=todayK();save();render();toast('已清空');
+    }
+    return;
+  }
+});
+
+document.addEventListener('click',e=>{
+  const mt=e.target.closest('[data-mf-time]');
+  if(mt){
+    const k=mt.dataset.mfTime;
+    const i=medEditTemp.times.indexOf(k);
+    if(i>=0) medEditTemp.times.splice(i,1); else medEditTemp.times.push(k);
+    renderMedModal();
+    return;
+  }
+  if(e.target.closest('#mfSave')){saveMedModal();return}
+  if(e.target.closest('#mfCancel')){closeAllModals();return}
+  if(e.target.closest('#medModalClose')){closeAllModals();return}
+  const medModal=document.getElementById('medModal');
+  if(medModal && e.target===medModal){closeAllModals();return}
+
+  if(e.target.closest('#nutParse')){
+    const txt=document.getElementById('nutPaste')?.value||'';
+    const p=parseNutritionText(txt);
+    const fill=(id,val)=>{
+      const el=document.getElementById(id);
+      if(el && (el.value===''||el.value==null) && val!=null) el.value=val;
+    };
+    fill('nutProtein',p.protein);
+    fill('nutFat',p.fat);
+    fill('nutCarbs',p.carbs);
+    fill('nutKcal',p.kcal);
+    fill('nutSodium',p.sodium);
+    const lbl=document.getElementById('nutLabel');
+    if(lbl && !lbl.value){
+      const firstLine=txt.split('\n')[0].trim();
+      if(firstLine && firstLine.length<40 && !/蛋白质|脂肪|碳水|热量|钠/.test(firstLine)){
+        lbl.value=firstLine;
+      }
+    }
+    const found=['protein','fat','carbs','kcal','sodium'].filter(k=>p[k]!=null).length;
+    if(found>0) toast(`✓ 解析到 ${found} 项`);
+    else toast('没解析到，手动填或检查格式');
+    return;
+  }
+  if(e.target.closest('#nutClear')){
+    ['nutLabel','nutProtein','nutFat','nutCarbs','nutKcal','nutSodium','nutPaste'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.value='';
+    });
+    return;
+  }
+  if(e.target.closest('#nutSave')){saveNutModal();return}
+  if(e.target.closest('#nutCancel')){closeAllModals();return}
+  if(e.target.closest('#nutModalClose')){closeAllModals();return}
+  const nutModal=document.getElementById('nutModal');
+  if(nutModal && e.target===nutModal){closeAllModals();return}
+
+  if(e.target.closest('#modalCopy')){
+    const ta=document.getElementById('modalText');
+    if(ta){
+      navigator.clipboard?.writeText(ta.value).then(()=>toast('✓ 已复制，去粘贴吧')).catch(()=>{
+        ta.select();document.execCommand('copy');toast('✓ 已复制');
+      });
+    }
+    return;
+  }
+  if(e.target.closest('#modalOk')||e.target.closest('#modalClose')){
+    document.getElementById('modal').classList.remove('show');
+    return;
+  }
+  const rModal=document.getElementById('modal');
+  if(rModal&&e.target===rModal){rModal.classList.remove('show');return}
+});
+
+const pending={};
+view.addEventListener('focusin',e=>{
+  if(e.target.matches('input, textarea, select')) pending[e.target]=e.target.value;
+});
+view.addEventListener('input',e=>{pending[e.target]=e.target.value});
+view.addEventListener('focusout',e=>{commitField(e.target)});
+view.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.matches('input')&&e.target.type!=='textarea'){
+    e.preventDefault();e.target.blur();
+  }
+});
+
+function commitField(el){
+  if(!el||!el.matches||!('value' in el))return;
+  const t=el;
+  if(pending[t]===t.value){delete pending[t];return}
+  const val=t.value;
+  delete pending[t];
+  const day=getDay(curDate);
+
+  if(t.dataset.field){
+    const k=t.dataset.field;
+    if(k==='weight'||k==='waist'){
+      const v=parseFloat(val);
+      day[k]=(!isNaN(v)&&v>0&&v<400)?v:null;
+      save();render({keepScroll:true});toast('✓ 已保存');
+      return;
+    }
+  }
+  if(t.dataset.bp){
+    const k=t.dataset.bp;
+    if(!day.bp) day.bp={sys:null,dia:null,hr:null};
+    const v=parseFloat(val);
+    day.bp[k]=(!isNaN(v)&&v>0)?v:null;
+    save();render({keepScroll:true});toast('✓ 已保存');
+    return;
+  }
+  if(t.dataset.sleep){
+    const k=t.dataset.sleep;
+    if(!day.sleep) day.sleep={hours:null,quality:null,nocturia:null};
+    const v=parseFloat(val);
+    day.sleep[k]=(!isNaN(v)&&v>=0)?v:null;
+    save();render({keepScroll:true});toast('✓ 已保存');
+    return;
+  }
+  if(t.dataset.void){
+    const k=t.dataset.void;
+    const v=parseFloat(val);
+    day.voiding[k]=(!isNaN(v)&&v>=0)?v:null;
+    save();render({keepScroll:true});toast('✓ 已保存');
+    return;
+  }
+  if(t.dataset.bowel==='count'){
+    const v=parseFloat(val);
+    day.bowel.count=(!isNaN(v)&&v>=0)?v:null;
+    save();render({keepScroll:true});toast('✓ 已保存');
+    return;
+  }
+  if(t.dataset.note!==undefined){day.note=val;save();toast('✓ 已保存');return}
+  if(t.dataset.cfg){
+    const k=t.dataset.cfg;
+    const v=parseFloat(val);
+    if(!isNaN(v)&&v>=0){S.cfg[k]=v;save();toast('✓ 已保存')}
+    return;
+  }
+}
+function flushInput(){
+  const a=document.activeElement;
+  if(a&&view.contains(a)) commitField(a);
+}
+
+document.addEventListener('change',e=>{
+  if(e.target.id!=='fileInp')return;
+  const f=e.target.files?.[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const data=JSON.parse(r.result);
+      if(!data.days)throw new Error('格式不对');
+      if(!confirm('导入会覆盖当前全部记录，确定吗？'))return;
+      S={
+        profile:Object.assign(defState().profile,data.profile||{}),
+        days:data.days||{},
+        uric:data.uric||[],
+        checkups:data.checkups||defState().checkups,
+        meds:Array.isArray(data.meds)?data.meds:[],
+        cfg:Object.assign(defState().cfg,data.cfg||{}),
+        goal:data.goal||null,
+        collapsed:data.collapsed||{}
+      };
+      save();render();toast('✓ 导入成功');
+    }catch(err){alert('导入失败：'+err.message)}
+  };
+  r.readAsText(f);
+  e.target.value='';
+});
+
+document.querySelectorAll('.ni').forEach(el=>{
+  el.addEventListener('click',()=>{
+    if(tab===el.dataset.tab)return;
+    flushInput();
+    if(el.dataset.tab==='cal'&&!calMonth){
+      const d=parseD(curDate);calMonth={y:d.getFullYear(),m:d.getMonth()};
+    }
+    tab=el.dataset.tab;render();
+  });
+});
+
+let rt=null;
+window.addEventListener('resize',()=>{
+  if(tab!=='trend')return;
+  clearTimeout(rt);rt=setTimeout(()=>render({keepScroll:true}),200);
+});
+
+/* ============================================================
+   18. 弹窗通用
+   ============================================================ */
+function openReport(title,text){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=`<textarea id="modalText" readonly></textarea>`;
+  document.getElementById('modalText').value=text;
+  document.getElementById('modal').classList.add('show');
+}
+function closeAllModals(){
+  document.getElementById('modal').classList.remove('show');
+  document.getElementById('medModal').classList.remove('show');
+  document.getElementById('nutModal').classList.remove('show');
+}
+
+function dl(blob,name){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+
+let toastTimer=null;
+function toast(msg){
+  const el=document.getElementById('toast');
+  if(!el)return;
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),1700);
+}
+
+/* ============================================================
+   19. 启动
+   ============================================================ */
+getDay(todayK());
+save();
+render();
+</script>
+</body>
+</html>
